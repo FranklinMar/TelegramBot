@@ -13,7 +13,30 @@ class Product:
 
 
 class Basket:
-    def signIn(self, ):
+    def addProduct(self):
+        pass
+
+    def delProduct(self):
+        pass
+
+    def payProducts(self):
+        pass
 
 
-    def addProduct(self, idn):
+class Profile:
+    def signIn(self):
+        pass
+
+    def changeData(self):
+        pass
+
+
+class Information:
+    def addResponse(self):
+        pass
+
+    def viewResponses(self):
+        pass
+
+    def viewInformation(self):
+        pass
