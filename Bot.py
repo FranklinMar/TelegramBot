@@ -28,7 +28,7 @@ async def send_catalog(message: types.Message):
     kt.add(KeyboardButton("Жіночий одяг"))
     kt.add(KeyboardButton('Чоловічий одяг'))
     kt.add(KeyboardButton('Дитячий одяг'))
-    kt.add(KeyboardButton("Back"))
+    kt.add(KeyboardButton("Повернутись у меню"))
     await message.answer('Виберіть для кого цей товар', reply_markup=kt)
 
 
@@ -37,13 +37,13 @@ async def send_woman(message: types.Message):
     woman = InlineKeyboardMarkup()
     woman.add(InlineKeyboardButton(text="Верхній одяг", callback_data="Outerwear_woman"))
     woman.add(InlineKeyboardButton(text="Толстовки", callback_data="Hoodies_woman"))
-    woman.add(InlineKeyboardButton(text="Блузки", callback_data="Accessories_woman"))
+    woman.add(InlineKeyboardButton(text="Аксесуари", callback_data="Accessories_woman"))
     woman.add(InlineKeyboardButton(text="Штани", callback_data="Pants_woman"))
     woman.add(InlineKeyboardButton(text="Білизна", callback_data="Underwear_woman"))
     await message.answer("Оберіть:", reply_markup=woman)
 
 
-@dp.message_handler(text="Back")
+@dp.message_handler(text="Повернутись у меню")
 async def send_back(message: types.Message):
     await message.answer("Оберіть дію:", reply_markup=kb)
 
@@ -53,7 +53,7 @@ async def send_man(message: types.Message):
     man = InlineKeyboardMarkup()
     man.add(InlineKeyboardButton(text="Верхній одяг", callback_data="Outerwear_man"))
     man.add(InlineKeyboardButton(text="Толстовки", callback_data="Hoodies_man"))
-    man.add(InlineKeyboardButton(text="Сорочки", callback_data="Accessories_man"))
+    man.add(InlineKeyboardButton(text="Аксесуари", callback_data="Accessories_man"))
     man.add(InlineKeyboardButton(text="Штани", callback_data="Pants_man"))
     man.add(InlineKeyboardButton(text="Білизна", callback_data="Underwear_man"))
     await message.answer("Оберіть:", reply_markup=man)
@@ -64,7 +64,7 @@ async def send_child(message: types.Message):
     children = InlineKeyboardMarkup()
     children.add(InlineKeyboardButton(text="Верхній одяг", callback_data="Outerwear_child"))
     children.add(InlineKeyboardButton(text="Толстовки", callback_data="Hoodies_child"))
-    children.add(InlineKeyboardButton(text="Сорочки", callback_data="Accessories_child"))
+    children.add(InlineKeyboardButton(text="Аксесуари", callback_data="Accessories_child"))
     children.add(InlineKeyboardButton(text="Штани", callback_data="Pants_child"))
     children.add(InlineKeyboardButton(text="Білизна", callback_data="Underwear_child"))
     await message.answer("Оберіть:", reply_markup=children)
@@ -146,23 +146,53 @@ async def send_underwear(call: CallbackQuery):
 
 
 @dp.message_handler(lambda message: message.text == "Корзина")
-async def send_basket(message: types.Message):
-    basket_button = ReplyKeyboardMarkup()
-    basket_button.add(KeyboardButton('Додати товар'))
-    basket_button.add(KeyboardButton('Видалити товар'))
-    basket_button.add(KeyboardButton('Оплатити замовлення'))
-    basket_button.add(KeyboardButton('Back'))
-    await message.reply('Оберіть дію', reply_markup=basket_button)
+async def process_start_command(message: types.Message):
+    kt = ReplyKeyboardMarkup()
+    kt.add(KeyboardButton('Переглянути товари в корзині'))
+    kt.add(KeyboardButton('Видалити товар'))
+    kt.add(KeyboardButton('Оплатити товари'))
+    kt.add(KeyboardButton('Повернутись у меню'))
+    await message.reply('Оберіть дію', reply_markup=kt)
+
+
+@dp.message_handler(lambda message: message.text == "Переглянути товари в корзині")
+async def add(message: types.Message):
+    await message.answer('Товари')
+
+
+@dp.message_handler(lambda message: message.text == "Видалити товар")
+async def dell(message: types.Message):
+    await message.answer("Видалення товарів")
+
+
+@dp.message_handler(lambda message: message.text == "Оплатити товари")
+async def pay(message: types.Message):
+    await message.answer("Оплата")
 
 
 @dp.message_handler(lambda message: message.text == "Інформація")
-async def send_inform(message: types.Message):
-    inform_button = ReplyKeyboardMarkup()
-    inform_button.add(KeyboardButton('Написати відгук'))
-    inform_button.add(KeyboardButton('Переглянути відгуки'))
-    inform_button.add(KeyboardButton('Переглянути інформацію про магазин'))
-    inform_button.add(KeyboardButton('Back'))
-    await message.reply('Оберіть вид інформації', reply_markup=inform_button)
+async def inform(message: types.Message):
+    kt = ReplyKeyboardMarkup()
+    kt.add(KeyboardButton('Написати відгук'))
+    kt.add(KeyboardButton('Переглянути відгуки'))
+    kt.add(KeyboardButton('Переглянути інформацію про магазин'))
+    kt.add(KeyboardButton('Повернутись у меню'))
+    await message.reply('Оберіть вид інформації', reply_markup=kt)
+
+
+@dp.message_handler(lambda message: message.text == "Написати відгук")
+async def write_review(message: types.Message):
+    await message.answer("Написання відгуку")
+
+
+@dp.message_handler(lambda message: message.text == "Переглянути відгуки")
+async def look_reviews(message: types.Message):
+    await message.answer("Переглядання відгуків")
+
+
+@dp.message_handler(lambda message: message.text == "Переглянути інформацію про відгуки")
+async def look_inform(message: types.Message):
+    await message.answer("Інформація про магазин")
 
 
 @dp.message_handler()
