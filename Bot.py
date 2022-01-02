@@ -27,7 +27,6 @@ async def send_catalog(message: types.Message):
     kt = ReplyKeyboardMarkup()
     kt.add(KeyboardButton("Жіночий одяг"))
     kt.add(KeyboardButton('Чоловічий одяг'))
-    kt.add(KeyboardButton('Дитячий одяг'))
     kt.add(KeyboardButton("Повернутись у меню"))
     await message.answer('Виберіть для кого цей товар', reply_markup=kt)
 
@@ -59,15 +58,7 @@ async def send_man(message: types.Message):
     await message.answer("Оберіть:", reply_markup=man)
 
 
-@dp.message_handler(text="Дитячий одяг")
-async def send_child(message: types.Message):
-    children = InlineKeyboardMarkup()
-    children.add(InlineKeyboardButton(text="Верхній одяг", callback_data="Outerwear_child"))
-    children.add(InlineKeyboardButton(text="Толстовки", callback_data="Hoodies_child"))
-    children.add(InlineKeyboardButton(text="Аксесуари", callback_data="Accessories_child"))
-    children.add(InlineKeyboardButton(text="Штани", callback_data="Pants_child"))
-    children.add(InlineKeyboardButton(text="Білизна", callback_data="Underwear_child"))
-    await message.answer("Оберіть:", reply_markup=children)
+
 
 
 @dp.callback_query_handler(text="Accessories_man")
@@ -75,9 +66,9 @@ async def send_accessories(call: CallbackQuery):
     await call.message.answer("Accessories_man")
 
 
-@dp.callback_query_handler(text="Accessories_child")
+@dp.callback_query_handler(text="Accessories_woman")
 async def send_accessories(call: CallbackQuery):
-    await call.message.answer("Accessories_child")
+    await call.message.answer("Accessories_woman")
 
 
 @dp.callback_query_handler(text="Outerwear_man")
@@ -90,10 +81,6 @@ async def send_outerwear(call: CallbackQuery):
     await call.message.answer("Outerwear_woman")
 
 
-@dp.callback_query_handler(text="Outerwear_child")
-async def send_outerwear(call: CallbackQuery):
-    await call.message.answer("Outerwear_child")
-
 
 @dp.callback_query_handler(text="Hoodies_man")
 async def send_hoodies(call: CallbackQuery):
@@ -104,10 +91,6 @@ async def send_hoodies(call: CallbackQuery):
 async def send_hoodies(call: CallbackQuery):
     await call.message.answer("Hoodies_woman")
 
-
-@dp.callback_query_handler(text="Hoodies_child")
-async def send_hoodies(call: CallbackQuery):
-    await call.message.answer("Hoodies_child")
 
 
 @dp.callback_query_handler(text="Accessories_woman")
@@ -125,10 +108,6 @@ async def send_pants(call: CallbackQuery):
     await call.message.answer("Pants_woman")
 
 
-@dp.callback_query_handler(text="Pants_child")
-async def send_pants(call: CallbackQuery):
-    await call.message.answer("Pants_child")
-
 
 @dp.callback_query_handler(text="Underwear_man")
 async def send_underwear(call: CallbackQuery):
@@ -139,10 +118,6 @@ async def send_underwear(call: CallbackQuery):
 async def send_underwear(call: CallbackQuery):
     await call.message.answer("Underwear_woman")
 
-
-@dp.callback_query_handler(text="Underwear_child")
-async def send_underwear(call: CallbackQuery):
-    await call.message.answer("Underwear_child")
 
 
 @dp.message_handler(lambda message: message.text == "Корзина")
