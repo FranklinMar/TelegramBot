@@ -19,7 +19,7 @@ kb.add(KeyboardButton('Допомога'))
 
 @dp.message_handler(commands=['start'])
 async def process_start_command(message: types.Message):
-    await message.reply("Привет!", reply_markup=kb)
+    await message.reply(f"Привет!\nID:{message.user_id}", reply_markup=kb)
 
 
 @dp.message_handler(lambda message: message.text == "Каталог")
@@ -174,4 +174,6 @@ async def look_inform(message: types.Message):
 async def echo(message: types.Message):
     await message.answer(message.text, reply_markup=kb)
 
-executor.start_polling(dp)
+if __name__ == "__main__":
+    executor.start_polling(dp)
+    
