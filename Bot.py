@@ -181,8 +181,8 @@ def sql_start():
 
 async def sql_read(message):
     for ret in cur.execute("SELECT * FROM Product WHERE type = 'Hoodies_woman'").fetchall():
-        await bot.send_message(message.from_user.id, f'{ret[1]}\nDescription: {ret[2]} '
-                                                           f'\nPrice: {ret[3]}')
+        await bot.send_photo(message.from_user.id, photo=open('1.jpg', 'rb'))
+        await bot.send_message(message.from_user.id, f'{ret[1]}\nDescription: {ret[2]}\nPrice: {ret[3]}')
         await bot.send_message(message.from_user.id, text='^', reply_markup=InlineKeyboardMarkup().\
                                add(InlineKeyboardButton(f'Add to order {ret[1]}', callback_data=f'add {ret[1]}')))
 
