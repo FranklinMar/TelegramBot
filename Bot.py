@@ -179,11 +179,10 @@ def sql_start():
         print('Database connected.')
 
 
-async def sql_read(call):
-    for ret in cur.execute("SELECT * FROM Product WHERE type='Hoodies_woman'").fetchall():
-        await bot.send_photo(call.from_user.id, ret[5], f'{ret[1]}\nName: {ret[2]} Description: {ret[2]} '
-                                                           f'Price: {ret[3]}')
-        print(ret[0])
+async def sql_read(message):
+    for ret in cur.execute("SELECT * FROM Product WHERE type = 'Hoodies_woman'").fetchall():
+        await bot.send_message(message.from_user.id, f'{ret[1]}\nDescription: {ret[2]} '
+                                                           f'\nPrice: {ret[3]}')
 
 
 if __name__ == "__main__":
