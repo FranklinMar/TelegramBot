@@ -1,14 +1,8 @@
-from aiogram import Bot
-from aiogram import Dispatcher
-from aiogram import executor
 from aiogram import types
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import sqlite3 as sq
-
-TOKEN = '2113090286:AAFXEnCPZIaQWBMhl9ohr5soUtXcKALMYqw'
-bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
+from dispatcher import dp
 
 kb = ReplyKeyboardMarkup()
 kb.add(KeyboardButton('Реєcтpація'))
@@ -22,6 +16,7 @@ kb.add(KeyboardButton('Допомога'))
 async def process_start_command(message: types.Message):
     await message.reply(f"Привет!\nID:{message.from_user.id}", reply_markup=kb)
     sql_start()
+
 
 
 @dp.message_handler(lambda message: message.text == "Каталог")
@@ -166,14 +161,14 @@ async def look_inform(message: types.Message):
     await message.answer("Інформація про магазин")
 
 
-@dp.message_handler()
-async def echo(message: types.Message):
-    await message.answer(message.text, reply_markup=kb)
+# @dp.message_handler()
+# async def echo(message: types.Message):
+#     await message.answer(message.text, reply_markup=kb)
 
 
 def sql_start():
     global base, cur
-    base = sq.connect('database.db')
+    base = sq.connect('../database.db')
     cur = base.cursor()
     if base:
         print('Database connected.')
@@ -181,12 +176,11 @@ def sql_start():
 
 async def sql_read(message):
     for ret in cur.execute("SELECT * FROM Product WHERE type = 'Hoodies_woman'").fetchall():
-        await bot.send_photo(message.from_user.id, photo=open('1.jpg', 'rb'))
+        await bot.send_photo(message.from_user.id, photo=open('../1.jpg', 'rb'))
         await bot.send_message(message.from_user.id, f'{ret[1]}\nDescription: {ret[2]}\nPrice: {ret[3]}')
         await bot.send_message(message.from_user.id, text='^', reply_markup=InlineKeyboardMarkup().\
                                add(InlineKeyboardButton(f'Add to order {ret[1]}', callback_data=f'add {ret[1]}')))
 
 
-if __name__ == "__main__":
-    executor.start_polling(dp)
+
     
