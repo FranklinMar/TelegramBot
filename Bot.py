@@ -4,6 +4,7 @@ from aiogram import executor
 from aiogram import types
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+import sqlite3 as sq
 
 TOKEN = '2113090286:AAFXEnCPZIaQWBMhl9ohr5soUtXcKALMYqw'
 bot = Bot(token=TOKEN)
@@ -19,7 +20,8 @@ kb.add(KeyboardButton('Допомога'))
 
 @dp.message_handler(commands=['start'])
 async def process_start_command(message: types.Message):
-    await message.reply(f"Привет!\nID:{message.user_id}", reply_markup=kb)
+    await message.reply(f"Привет!\nID:{message.from_user.id}", reply_markup=kb)
+    sql_start()
 
 
 @dp.message_handler(lambda message: message.text == "Каталог")
@@ -58,9 +60,6 @@ async def send_man(message: types.Message):
     await message.answer("Оберіть:", reply_markup=man)
 
 
-
-
-
 @dp.callback_query_handler(text="Accessories_man")
 async def send_accessories(call: CallbackQuery):
     await call.message.answer("Accessories_man")
@@ -81,7 +80,6 @@ async def send_outerwear(call: CallbackQuery):
     await call.message.answer("Outerwear_woman")
 
 
-
 @dp.callback_query_handler(text="Hoodies_man")
 async def send_hoodies(call: CallbackQuery):
     await call.message.answer("Hoodies_man")
@@ -89,8 +87,8 @@ async def send_hoodies(call: CallbackQuery):
 
 @dp.callback_query_handler(text="Hoodies_woman")
 async def send_hoodies(call: CallbackQuery):
-    await call.message.answer("Hoodies_woman")
-
+    #await call.message.answer("Hoodies_woman")
+    await sql_read(call)
 
 
 @dp.callback_query_handler(text="Accessories_woman")
@@ -108,7 +106,6 @@ async def send_pants(call: CallbackQuery):
     await call.message.answer("Pants_woman")
 
 
-
 @dp.callback_query_handler(text="Underwear_man")
 async def send_underwear(call: CallbackQuery):
     await call.message.answer("Underwear_man")
@@ -117,7 +114,6 @@ async def send_underwear(call: CallbackQuery):
 @dp.callback_query_handler(text="Underwear_woman")
 async def send_underwear(call: CallbackQuery):
     await call.message.answer("Underwear_woman")
-
 
 
 @dp.message_handler(lambda message: message.text == "Корзина")
@@ -173,6 +169,22 @@ async def look_inform(message: types.Message):
 @dp.message_handler()
 async def echo(message: types.Message):
     await message.answer(message.text, reply_markup=kb)
+
+
+def sql_start():
+    global base, cur
+    base = sq.connect('database.db')
+    cur = base.cursor()
+    if base:
+        print('Database connected.')
+
+
+async def sql_read(call):
+    for ret in cur.execute("SELECT * FROM Product WHERE type='Hoodies_woman'").fetchall():
+        await bot.send_photo(call.from_user.id, ret[5], f'{ret[1]}\nName: {ret[2]} Description: {ret[2]} '
+                                                           f'Price: {ret[3]}')
+        print(ret[0])
+
 
 if __name__ == "__main__":
     executor.start_polling(dp)
