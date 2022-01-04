@@ -5,6 +5,7 @@ import sqlite3 as sq
 
 from Factory import Factory
 from dispatcher import dp, bot
+from DatabaseFunctions import insert_db
 
 kb = ReplyKeyboardMarkup()
 kb.add(KeyboardButton('/myprofile'))
@@ -26,14 +27,14 @@ async def process_start_command(message: types.Message):
     await message.reply(f"Привет!\nID:{message.from_user.id}\n{message}", reply_markup=kb)
 
 
-@dp.message_handler(lambda message: message.text == "Корзина")
-async def process_start_command(message: types.Message):
-    kt = ReplyKeyboardMarkup()
-    kt.add(KeyboardButton('Переглянути товари в корзині'))
-    kt.add(KeyboardButton('Видалити товар'))
-    kt.add(KeyboardButton('Оплатити товари'))
-    kt.add(KeyboardButton('Повернутись у меню'))
-    await message.reply('Оберіть дію', reply_markup=kt)
+# @dp.message_handler(lambda message: message.text == "Корзина")
+# async def process_start_command(message: types.Message):
+#     kt = ReplyKeyboardMarkup()
+#     kt.add(KeyboardButton('Переглянути товари в корзині'))
+#     kt.add(KeyboardButton('Видалити товар'))
+#     kt.add(KeyboardButton('Оплатити товари'))
+#     kt.add(KeyboardButton('Повернутись у меню'))
+#     await message.reply('Оберіть дію', reply_markup=kt)
 
 
 @dp.message_handler(lambda message: message.text == "Переглянути товари в корзині")

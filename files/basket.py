@@ -22,6 +22,7 @@ async def show_basket(message: types.Message):
     # show(message)
     sql_start()
     # sql = f"SELECT idProduct FROM Basket WHERE idProfile = {message.from_user.id}"
+
     basket = [select_by_id_db(i[0]) for i in cur.execute(f"SELECT idProduct FROM Basket WHERE idProfile = "
                                                          f"{message.from_user.id};")]
     if len(basket) == 0:
@@ -46,9 +47,9 @@ async def process_ordering(callback_query: types.CallbackQuery):
     # if cur.fetchone()[0]:
     if ids:
         keyboard = InlineKeyboardMarkup()
-        cur.execute(f"SELECT color FROM FullProduct WHERE idProduct = {ids};")
+        cur.execute(f"SELECT color FROM FullProduct WHERE idProduct = {ids} GROUP BY color;")
         for i in cur.fetchall():
-            keyboard.add(InlineKeyboardButton(f'{i[0]}', callback_data=f'{callback_query.data} {i[0]}'))
+            keyboard.add(InlineKeyboardButton(text=f'{i[0]}', callback_data=f'{callback_query.data} {i[0]}'))
         # base.execute(f"")
         # pass
         # reply_markup = InlineKeyboardMarkup().add(InlineKeyboardButton(f'Add to buying ⏩🟢',
