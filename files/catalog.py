@@ -122,7 +122,9 @@ async def sql_add_command(id_element):
 
 
 def get_name_product_by_id(id_product):
-    return cur.execute("SELECT name FROM Product WHERE idProduct = ?", (id_product,))
+    result = cur.execute("SELECT * FROM Product WHERE idProduct = ?", (id_product,)).fetchone()
+    print(result)
+    return result[1]
 
 
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('add '))
