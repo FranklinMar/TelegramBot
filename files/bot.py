@@ -23,7 +23,7 @@ async def process_start_command(message: types.Message):
         sql = "INSERT INTO Profile (id) VALUES (?);"
         factory.cursor.execute(sql, (message.from_user.id,))
         factory.connector.commit()
-    await message.reply(f"Привет!\nID:{message.from_user.id}", reply_markup=kb)
+    await message.reply(f"Привет!\nID:{message.from_user.id}\n{message}", reply_markup=kb)
 
 
 @dp.message_handler(lambda message: message.text == "Корзина")

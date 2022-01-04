@@ -32,7 +32,7 @@ def select_by_id_db(ids):
     connection = sqlite3.connect("database.db")
     cursor = connection.cursor()
     sql = f"SELECT * FROM Product WHERE idProduct = {ids}"
-    temp = cursor.execute(sql).fetchone()
+    temp = [*cursor.execute(sql).fetchone()]
     if temp[5]:
         temp[5] = io.BufferedReader(io.BytesIO(temp[5]))
     return temp
@@ -105,3 +105,7 @@ def insert_picture(database_path, picture_file):
 # if __name__ == "__main__":
 #     insert_picture("database.db", "1.jpg")
 #     extract_picture("database.db")
+
+if __name__ == "__main__":
+    insert_db("Woman hoodie", "Beautiful oversize hoodie", 500, "Woman", "1.jpg", "Hoodies_woman")
+    insert_db('Hoodie "dino"', "Hoodie with dino print", 600, "Woman", "2.jpg", "Hoodies_woman")
