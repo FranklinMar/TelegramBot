@@ -125,9 +125,10 @@ def get_name_product_by_id(id_product):
 
 async def sql_add_command(id_element, id_user):
     print(id_user)
-    id_elements = cur.execute("SELECT * FROM Basket WHERE idProfile = ?", (id_user,)).fetchone()
+    id_elements = cur.execute("SELECT * FROM Basket WHERE idProfile = ? AND idProduct = ?", (id_user, id_element)).fetchone()
     if id_elements is None:
         cur.execute('INSERT INTO Basket (idProfile, idProduct) VALUES (?,?);', (id_user, id_element))
+        base.commit()
         return True
     else:
         return False
@@ -135,7 +136,7 @@ async def sql_add_command(id_element, id_user):
 
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('add '))
 async def add_callback_run(callback_query: types.CallbackQuery):
-    if await sql_add_command(callback_query.data.replace('add ', ''), callback_query.message.from_user.id):
+    if await sql_add_command(callback_query.data.replace('add ', ''), callback_query.from_user.id):
         await callback_query.answer(text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} added.",
                                     show_alert=True)
     else:
