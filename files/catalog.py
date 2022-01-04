@@ -116,14 +116,22 @@ def sql_start():
         print('Database connected.')
 
 
-# async def sql_add_command(id_element):
-#     cur.execute('INSERT INTO Order VALUE()')
+async def sql_add_command(id_element):
+    cur.execute('INSERT INTO Basket (idProduct) VALUES (?);', (id_element,))
+    base.commit()
 
 
-# @dp.callback_query_handler(lambda x: x.data and x.data.startswitch('add '))
-# async def add_callback_run(callback_query: types.CallbackQuery):
-#     await sq.sql_add_command(callback_query.data.replace('add ', ''))
-#     await callback_query.answer(text=f"{callback_query.data.replace('add ', '')} added.", show_alert=True)
+def get_name_product_by_id(id_product):
+    result = cur.execute("SELECT * FROM Product WHERE idProduct = ?", (id_product,)).fetchone()
+    print(result)
+    return result[1]
+
+
+@dp.callback_query_handler(lambda x: x.data and x.data.startswith('add '))
+async def add_callback_run(callback_query: types.CallbackQuery):
+    await sql_add_command(callback_query.data.replace('add ', ''))
+    await callback_query.answer(text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} added.",
+                                show_alert=True)
 
 
 async def sql_read(message, type_clothes):
