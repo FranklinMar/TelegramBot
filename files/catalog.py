@@ -2,6 +2,8 @@ from aiogram import types
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import sqlite3 as sq
+
+from DatabaseFunctions import select_by_id_db
 from dispatcher import dp, bot
 from files.bot import kb
 
@@ -122,28 +124,41 @@ def get_name_product_by_id(id_product):
 
 
 async def sql_add_command(id_element, id_user):
-    id_elements = cur.execute("SELECT id_Product FROM Basket WHERE idProfile = ?", (id_user,)).fetchone()
-    if id_element not in id_elements:
+    print(id_user)
+    id_elements = cur.execute("SELECT * FROM Basket WHERE idProfile = ?", (id_user,)).fetchone()
+    if id_elements is None:
         cur.execute('INSERT INTO Basket (idProfile, idProduct) VALUES (?,?);', (id_user, id_element))
+        return True
     else:
-        return None
+        return False
 
 
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('add '))
 async def add_callback_run(callback_query: types.CallbackQuery):
-    if sql_add_command(callback_query.data.replace('add ', ''), callback_query.message.from_user.id) is None:
+    if await sql_add_command(callback_query.data.replace('add ', ''), callback_query.message.from_user.id):
+        await callback_query.answer(text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} added.",
+                                    show_alert=True)
+    else:
         await callback_query.answer(
             text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} is already "
                  f"in your basket.", show_alert=True)
-    else:
-        await callback_query.answer(text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} added.",
-                                    show_alert=True)
 
 
 async def sql_read(message, type_clothes):
     sql_start()
-    for ret in cur.execute("SELECT * FROM Product WHERE type = :typeCl", {"typeCl": type_clothes}).fetchall():
-        await bot.send_photo(message.from_user.id, photo=open('1.jpg', 'rb'))
-        await bot.send_message(message.from_user.id, f'{ret[1]}\nDescription: {ret[2]}\nPrice: {ret[3]}')
-        await bot.send_message(message.from_user.id, text='^', reply_markup=InlineKeyboardMarkup(). \
-                               add(InlineKeyboardButton(f'Add to order {ret[1]}', callback_data=f'add {ret[0]}')))
+    # for ret in cur.execute("SELECT * FROM Product WHERE type = :typeCl", {"typeCl": type_clothes}).fetchall():
+    #     await bot.send_photo(message.from_user.id, photo=open('1.jpg', 'rb'))
+    #     await bot.send_message(message.from_user.id, f'{ret[1]}\nDescription: {ret[2]}\nPrice: {ret[3]}')
+    #     await bot.send_message(message.from_user.id, text='^', reply_markup=InlineKeyboardMarkup(). \
+    #                            add(InlineKeyboardButton(f'Add to order {ret[1]}', callback_data=f'add {ret[0]}')))
+    products = [select_by_id_db(i[0]) for i in
+                cur.execute("SELECT * FROM Product WHERE type = :typeCl", {"typeCl": type_clothes}).fetchall()]
+    if not len(products):
+        await message.answer("Empty category...")
+    else:
+        for product in products:
+            await bot.send_photo(message.from_user.id, photo=product[5])
+            await bot.send_message(message.from_user.id, f'{product[1]}\nDescription: {product[2]}\nPrice: {product[3]}'
+                                   , reply_markup=InlineKeyboardMarkup().
+                                   add(InlineKeyboardButton(f'Add to order {product[1]}',
+                                                            callback_data=f'add {product[0]}')))
