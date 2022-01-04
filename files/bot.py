@@ -52,14 +52,14 @@ async def pay(message: types.Message):
     await message.answer("Оплата")
 
 
-@dp.message_handler(lambda message: message.text == "Інформація")
-async def inform(message: types.Message):
-    kt = ReplyKeyboardMarkup()
-    kt.add(KeyboardButton('Написати відгук'))
-    kt.add(KeyboardButton('Переглянути відгуки'))
-    kt.add(KeyboardButton('Переглянути інформацію про магазин'))
-    kt.add(KeyboardButton('Повернутись у меню'))
-    await message.reply('Оберіть вид інформації', reply_markup=kt)
+# @dp.message_handler(lambda message: message.text == "Інформація")
+# async def inform(message: types.Message):
+#     kt = ReplyKeyboardMarkup()
+#     kt.add(KeyboardButton('Написати відгук'))
+#     kt.add(KeyboardButton('Переглянути відгуки'))
+#     kt.add(KeyboardButton('Переглянути інформацію про магазин'))
+#     kt.add(KeyboardButton('Повернутись у меню'))
+#     await message.reply('Оберіть вид інформації', reply_markup=kt)
 
 
 @dp.message_handler(lambda message: message.text == "Написати відгук")

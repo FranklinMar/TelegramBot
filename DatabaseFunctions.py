@@ -38,6 +38,19 @@ def select_by_id_db(ids):
     return temp
 
 
+def select_by_id_db_full(ids):
+    if not isinstance(ids, int):
+        raise TypeError("Id is not 'int'.")
+    if ids <= 0:
+        raise ValueError("Id value negative.")
+
+    connection = sqlite3.connect("database.db")
+    cursor = connection.cursor()
+    sql = f"SELECT * FROM FullProduct WHERE idFull = {ids}"
+    temp = [*cursor.execute(sql).fetchone()]
+    return temp
+
+
 def extract_picture(database_path): #, picture_id):
     connection = sqlite3.connect(database_path)
 
