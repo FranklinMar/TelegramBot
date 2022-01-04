@@ -42,31 +42,79 @@ async def show_basket(message: types.Message):
 async def process_ordering(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     ids = int(callback_query.data.split()[1])
-    cur.execute(f"SELECT idBasket FROM Basket WHERE idProfile = {callback_query.from_user.id} AND idProduct = {ids};")
-    ids = cur.fetchone()[0]
+    cur.execute(f"SELECT idBasket, idProduct FROM Basket WHERE idProfile = {callback_query.from_user.id} AND idProduct = {ids};")
+    ids = cur.fetchone()
     # if cur.fetchone()[0]:
     if ids:
         keyboard = InlineKeyboardMarkup()
-        cur.execute(f"SELECT color FROM FullProduct WHERE idProduct = {ids} GROUP BY color;")
-        for i in cur.fetchall():
-            keyboard.add(InlineKeyboardButton(text=f'{i[0]}', callback_data=f'{callback_query.data} {i[0]}'))
+        cur.execute(f"SELECT color FROM FullProduct WHERE idProduct = {ids[1]} GROUP BY color;")
+        temp = cur.fetchall()
+        if temp:
+            for i in temp:
+                keyboard.add(InlineKeyboardButton(text=f'{i[0]}', callback_data=f'Add {callback_query.data} {i[0]}'))
         # base.execute(f"")
         # pass
         # reply_markup = InlineKeyboardMarkup().add(InlineKeyboardButton(f'Add to buying ⏩🟢',
         #             callback_data=f'/AddOrder {i[0]}')).add(InlineKeyboardButton(f'Add to buying ⏩🟢',
         #                          callback_data=f'/Delete {i[0]}')))
-        await bot.send_message(callback_query.from_user.id, f'🟨🟥 Select color of the product 🟩🟦', reply_markup=keyboard)
+            await bot.send_message(callback_query.from_user.id, '🟨🟥 Select color of the product 🟩🟦',
+                                   reply_markup=keyboard)
+        else:
+            await bot.send_message(callback_query.from_user.id, '🚫 Sorry, the storage is out of this product. 🚫\n'
+                                                                '⚠️Try again next time.')
 
     else:
         await bot.send_message(callback_query.from_user.id, "❌ Product is not in your basket. ❌")
         #await message.answer("❌ Product is not in your basket. ❌")
 
 
+@dp.callback_query_handler(lambda c: re.match('Add [0-9]+ [A-Za-z]+', c.data))
+async def process_ordering(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
+    ids = int(callback_query.data.split()[1])
+    cur.execute(f"SELECT idBasket, idProduct FROM Basket WHERE idProfile = {callback_query.from_user.id} AND idProduct = {ids};")
+    ids = cur.fetchone()
+    # if cur.fetchone()[0]:
+    if ids:
+        keyboard = InlineKeyboardMarkup()
+        cur.execute(f"SELECT id, size FROM FullProduct WHERE idProduct = {ids[1]} AND size = "
+                    f"{callback_query.data.split()[2]};")
+        temp = cur.fetchall()
+        if temp:
+            for i in temp:
+                keyboard.add(InlineKeyboardButton(text=f'{i[1]}', callback_data=f'Add {callback_query.data} {i[0]}'))
+        # base.execute(f"")
+        # pass
+        # reply_markup = InlineKeyboardMarkup().add(InlineKeyboardButton(f'Add to buying ⏩🟢',
+        #             callback_data=f'/AddOrder {i[0]}')).add(InlineKeyboardButton(f'Add to buying ⏩🟢',
+        #                          callback_data=f'/Delete {i[0]}')))
+            await bot.send_message(callback_query.from_user.id, '👕👖🧥 Select size of the product 👞👟🧤',
+                                   reply_markup=keyboard)
+        else:
+            await bot.send_message(callback_query.from_user.id, '🚫 Sorry, the storage is out of this product. 🚫\n'
+                                                                '⚠️Try again next time.')
+    else:
+        await bot.send_message(callback_query.from_user.id, "❌ Product is not in your basket. ❌")
+
+
+@dp.callback_query_handler(lambda c: re.match('Add [0-9]+ [A-Za-z]+ [0-9]+', c.data))
+async def process_ordering(callback_query: types.CallbackQuery):
+    await bot.answer_callback_query(callback_query.id)
+    # ids = int(callback_query.data.split()[1])
+    # cur.execute(f"SELECT idBasket FROM Basket WHERE idProfile = {callback_query.from_user.id} AND idProduct = {ids};")
+    # ids = cur.fetchone()
+    # if ids:
+    #     cur.execute(f"SELECT id, size FROM FullProduct WHERE idProduct = {ids[2]} AND size = "
+    #                 f"{callback_query.data.split()[2]};")
+    # else:
+    #     await bot.send_message(callback_query.from_user.id, "❌ Product is not in your basket. ❌")
+
+
 @dp.callback_query_handler(lambda c: re.match('Delete [0-9]+', c.data))
 async def process_deleting(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     ids = int(callback_query.data.split()[1])
-    cur.execute(f"SELECT idBasket FROM Basket WHERE idProfile = {callback_query.from_user.id} AND idProduct = {ids};")
+    cur.execute(f"SELECT idBasket, idProduct FROM Basket WHERE idProfile = {callback_query.from_user.id} AND idProduct = {ids};")
     ids = cur.fetchone()[0]
     if ids:
         base.execute(f"DELETE FROM Basket WHERE idBasket = {ids};")
