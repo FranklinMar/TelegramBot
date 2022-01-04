@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import sqlite3 as sq
-from dispatcher import dp
+from dispatcher import dp, bot
 
 kb = ReplyKeyboardMarkup()
 kb.add(KeyboardButton('Реєcтpація'))
@@ -16,7 +16,6 @@ kb.add(KeyboardButton('Допомога'))
 async def process_start_command(message: types.Message):
     await message.reply(f"Привет!\nID:{message.from_user.id}", reply_markup=kb)
     sql_start()
-
 
 
 @dp.message_handler(lambda message: message.text == "Каталог")
@@ -58,57 +57,67 @@ async def send_man(message: types.Message):
 @dp.callback_query_handler(text="Accessories_man")
 async def send_accessories(call: CallbackQuery):
     await call.message.answer("Accessories_man")
+    await sql_read(call, 'Accessories_man')
 
 
 @dp.callback_query_handler(text="Accessories_woman")
 async def send_accessories(call: CallbackQuery):
     await call.message.answer("Accessories_woman")
+    await sql_read(call, 'Accessories_woman')
 
 
 @dp.callback_query_handler(text="Outerwear_man")
 async def send_outerwear(call: CallbackQuery):
     await call.message.answer("Outerwear_man")
+    await sql_read(call, 'Outerwear_man')
 
 
 @dp.callback_query_handler(text="Outerwear_woman")
 async def send_outerwear(call: CallbackQuery):
     await call.message.answer("Outerwear_woman")
+    await sql_read(call, 'Outerwear_woman')
 
 
 @dp.callback_query_handler(text="Hoodies_man")
 async def send_hoodies(call: CallbackQuery):
     await call.message.answer("Hoodies_man")
+    await sql_read(call, 'Hoodies_man')
 
 
 @dp.callback_query_handler(text="Hoodies_woman")
 async def send_hoodies(call: CallbackQuery):
     #await call.message.answer("Hoodies_woman")
-    await sql_read(call)
+    await sql_read(call, 'Hoodies_woman')
 
 
 @dp.callback_query_handler(text="Accessories_woman")
 async def send_accessories(call: CallbackQuery):
     await call.message.answer("Accessories_woman")
+    await sql_read(call, 'Accessories_woman')
 
 
 @dp.callback_query_handler(text="Pants_man")
 async def send_pants(call: CallbackQuery):
     await call.message.answer("Pants_man")
+    await sql_read(call, 'Pants_man')
 
 
 @dp.callback_query_handler(text="Pants_woman")
 async def send_pants(call: CallbackQuery):
     await call.message.answer("Pants_woman")
+    await sql_read(call, 'Pants_woman')
 
 
 @dp.callback_query_handler(text="Underwear_man")
 async def send_underwear(call: CallbackQuery):
     await call.message.answer("Underwear_man")
+    await sql_read(call, 'Underwear_man')
 
 
 @dp.callback_query_handler(text="Underwear_woman")
 async def send_underwear(call: CallbackQuery):
     await call.message.answer("Underwear_woman")
+    await sql_read(call, 'Underwear_woman')
 
 
 @dp.message_handler(lambda message: message.text == "Корзина")
@@ -168,15 +177,15 @@ async def look_inform(message: types.Message):
 
 def sql_start():
     global base, cur
-    base = sq.connect('../database.db')
+    base = sq.connect('database.db')
     cur = base.cursor()
     if base:
         print('Database connected.')
 
 
-async def sql_read(message):
-    for ret in cur.execute("SELECT * FROM Product WHERE type = 'Hoodies_woman'").fetchall():
-        await bot.send_photo(message.from_user.id, photo=open('../1.jpg', 'rb'))
+async def sql_read(message, type_clothes):
+    for ret in cur.execute("SELECT * FROM Product WHERE type = :typeCl", {"typeCl": type_clothes}).fetchall():
+        await bot.send_photo(message.from_user.id, photo=open('1.jpg', 'rb'))
         await bot.send_message(message.from_user.id, f'{ret[1]}\nDescription: {ret[2]}\nPrice: {ret[3]}')
         await bot.send_message(message.from_user.id, text='^', reply_markup=InlineKeyboardMarkup().\
                                add(InlineKeyboardButton(f'Add to order {ret[1]}', callback_data=f'add {ret[1]}')))
