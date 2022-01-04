@@ -7,7 +7,7 @@ from Factory import Factory
 from dispatcher import dp, bot
 
 kb = ReplyKeyboardMarkup()
-kb.add(KeyboardButton('Реєcтpація'))
+kb.add(KeyboardButton('/myprofile'))
 kb.add(KeyboardButton('Каталог'))
 kb.add(KeyboardButton('Корзина'))
 kb.add(KeyboardButton('Інформація'))
