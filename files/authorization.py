@@ -7,7 +7,8 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import sqlite3 as sq
-from phonenumbers import is_possible_number, parse, NumberParseException
+
+import phonenumbers
 
 from dispatcher import dp
 
@@ -63,14 +64,14 @@ async def birthday_input(message: types.Message, state: FSMContext):
 async def passport_number_input(message: types.Message, state: FSMContext):
 
     try:
-        phone_number = parse(message.text)
-    except NumberParseException:
+        phone_number = phonenumbers.parse(message.text)
+    except phonenumbers.NumberParseException:
         await message.answer(
             "Введений рядок не відповідає номеру телефона 😔\n"
             "Спробуйте ще раз")
         return
 
-    if not is_possible_number(phone_number):
+    if not phonenumbers.is_possible_number(phone_number):
         await message.answer("Некоректний номер телефону 😔\nСпробуйте ще раз")
         return
 

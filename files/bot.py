@@ -2,8 +2,9 @@ from aiogram import types
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import sqlite3 as sq
-from dispatcher import dp, bot
 
+from Factory import Factory
+from dispatcher import dp, bot
 
 kb = ReplyKeyboardMarkup()
 kb.add(KeyboardButton('Реєcтpація'))
@@ -15,6 +16,13 @@ kb.add(KeyboardButton('Допомога'))
 
 @dp.message_handler(commands=['start'])
 async def process_start_command(message: types.Message):
+    factory = Factory("database.db")
+    if factory.cursor.execute(f"SELECT * FROM Profile WHERE id = {message.from_user.id};").fetchall():
+        pass
+    else:
+        sql = "INSERT INTO Profile (id) VALUES (?);"
+        factory.cursor.execute(sql, (message.from_user.id,))
+        factory.connector.commit()
     await message.reply(f"Привет!\nID:{message.from_user.id}", reply_markup=kb)
 
 
