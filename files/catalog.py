@@ -74,7 +74,7 @@ async def send_hoodies(call: CallbackQuery):
 
 @dp.callback_query_handler(text="Hoodies_woman")
 async def send_hoodies(call: CallbackQuery):
-    #await call.message.answer("Hoodies_woman")
+    # await call.message.answer("Hoodies_woman")
     await sql_read(call, 'Hoodies_woman')
 
 
@@ -116,22 +116,28 @@ def sql_start():
         print('Database connected.')
 
 
-async def sql_add_command(id_element):
-    cur.execute('INSERT INTO Basket (idProduct) VALUES (?);', (id_element,))
-    base.commit()
-
-
 def get_name_product_by_id(id_product):
     result = cur.execute("SELECT * FROM Product WHERE idProduct = ?", (id_product,)).fetchone()
-    print(result)
     return result[1]
+
+
+async def sql_add_command(id_element, id_user):
+    id_elements = cur.execute("SELECT id_Product FROM Basket WHERE idProfile = ?", (id_user,)).fetchone()
+    if id_element not in id_elements:
+        cur.execute('INSERT INTO Basket (idProfile, idProduct) VALUES (?,?);', (id_user, id_element))
+    else:
+        return None
 
 
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('add '))
 async def add_callback_run(callback_query: types.CallbackQuery):
-    await sql_add_command(callback_query.data.replace('add ', ''))
-    await callback_query.answer(text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} added.",
-                                show_alert=True)
+    if sql_add_command(callback_query.data.replace('add ', ''), callback_query.message.from_user.id) is None:
+        await callback_query.answer(
+            text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} is already "
+                 f"in your basket.", show_alert=True)
+    else:
+        await callback_query.answer(text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} added.",
+                                    show_alert=True)
 
 
 async def sql_read(message, type_clothes):
