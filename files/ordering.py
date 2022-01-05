@@ -1,10 +1,11 @@
 import re
-
 from aiogram import types
 from dispatcher import dp, bot
 from DatabaseFunctions import select_by_id_db
 from Factory import Factory
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, ReplyKeyboardMarkup, KeyboardButton
+
+from files.bot import kb
 
 factory = Factory("database.db")
 
@@ -23,7 +24,7 @@ async def show_orders(call: CallbackQuery):
     orders = factory.get_ordering(call.from_user.id, False)
     price = 0
     if not orders:
-        await call.message.answer("⚙️⚙️⚙️⚠️ It is so empty here... ⚠️ ⚙️⚙️⚙️")
+        await call.message.answer("⚙️⚙️⚙️⚠️ It is so empty here... ⚠️ ⚙️⚙️⚙️", reply_markup=kb)
     else:
         for order in orders:
             full_products = factory.get_full_product(order[1])
