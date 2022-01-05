@@ -11,7 +11,7 @@ kb = ReplyKeyboardMarkup()
 kb.add(KeyboardButton('/myprofile'))
 kb.add(KeyboardButton('Каталог'))
 kb.add(KeyboardButton('Корзина'))
-kb.add(KeyboardButton('Інформація'))
+kb.add(KeyboardButton('Замовлення'))
 kb.add(KeyboardButton('Допомога'))
 
 
@@ -25,6 +25,7 @@ async def process_start_command(message: types.Message):
         factory.cursor.execute(sql, (message.from_user.id,))
         factory.connector.commit()
     await message.reply(f"Привет!\nID:{message.from_user.id}\n{message}", reply_markup=kb)
+
 
 
 # @dp.message_handler(lambda message: message.text == "Корзина")
