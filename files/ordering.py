@@ -10,7 +10,7 @@ from files.bot import kb
 factory = Factory("database.db")
 
 
-@dp.message_handler(lambda message: message.text == "Замовлення")
+@dp.message_handler(lambda message: message.text == "Замовлення💵")
 async def process_order(message: types.Message):
     await message.answer("Choose", reply_markup=InlineKeyboardMarkup().add(
                                        InlineKeyboardButton(f'Not paid',
@@ -36,7 +36,7 @@ async def show_orders(call: CallbackQuery):
                                    reply_markup=InlineKeyboardMarkup().add(
                                        InlineKeyboardButton(f'Remove from order ❌',
                                                             callback_data=f'Del {order[0]}')))
-            await call.message.answer(f"Загальна сума замовлення становить:{price}\nДля оплати натисніть кнопку⬇️", reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton("Pay")))
+            await call.message.answer(f"Загальна сума замовлення становить: {price}💸\nДля оплати натисніть кнопку⬇️", reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton("Pay💰")))
 
 
 @dp.callback_query_handler(lambda c: re.match('Del [0-9]+', c.data))

@@ -2,7 +2,7 @@ from aiogram import types
 from aiogram.types import CallbackQuery
 
 from dispatcher import dp, bot
-from DatabaseFunctions import select_by_id_db, select_by_id_db_full
+from DatabaseFunctions import select_by_id_db
 from Factory import Factory
 factory = Factory("database.db")
 
@@ -10,7 +10,7 @@ factory = Factory("database.db")
 @dp.callback_query_handler(text="paid")
 async def show_paid_orders(call: CallbackQuery):
     orders = factory.get_ordering(call.from_user.id, True)
-    if len(orders) == 0:
+    if not orders:
         await call.message.answer("⚙️⚙️⚙️⚠️ It is so empty here... ⚠️ ⚙️⚙️⚙️")
     else:
         for order in orders:

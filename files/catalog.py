@@ -8,7 +8,7 @@ from dispatcher import dp, bot
 from files.bot import kb
 
 
-@dp.message_handler(lambda message: message.text == "Каталог")
+@dp.message_handler(lambda message: message.text == "Каталог🛍")
 async def send_catalog(message: types.Message):
     kt = ReplyKeyboardMarkup()
     kt.add(KeyboardButton("Жіночий одяг"))

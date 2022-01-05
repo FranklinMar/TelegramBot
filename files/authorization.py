@@ -31,15 +31,15 @@ class UserEdit(StatesGroup):
     patronymic = State()
     phone_number = State()
 
-change = ReplyKeyboardMarkup()
-change.add(KeyboardButton("Yes"))
-change.add(KeyboardButton("No"))
+
+change = ReplyKeyboardMarkup(resize_keyboard=True)
+change.row(KeyboardButton("Yes"), KeyboardButton("No"))
 
 
 @dp.message_handler(commands=['reg'])
 async def register_start(message: types.Message):
     await message.answer("Hello! Enter your surname:",
-                         reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("Cancel")))
+                         reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙Cancel")))
     await UserRegister.surname.set()
 
 
@@ -107,7 +107,7 @@ async def cancel(message: types.Message, state: FSMContext):
                          reply_markup=kb)
 
 
-@dp.message_handler(commands=['myprofile'])
+@dp.message_handler(lambda message: message.text == "Профіль🙎‍♂️🙍‍♀️")
 async def profile(message: types.Message):
     if my_profile(message.from_user.id):
         await message.answer(my_profile(message.from_user.id), reply_markup=change)
