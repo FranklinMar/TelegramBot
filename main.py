@@ -1,6 +1,8 @@
+
 from aiogram.utils import executor
 from dispatcher import dp
-import files
+from files.delete_ordering import on_startup
+
 
 if __name__ == "__main__":
-    executor.start_polling(dp)
+    executor.start_polling(dp, skip_updates=False, on_startup=on_startup)
