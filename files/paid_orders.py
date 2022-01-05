@@ -14,8 +14,6 @@ async def show_paid_orders(call: CallbackQuery):
         await call.message.answer("⚙️⚙️⚙️⚠️ It is so empty here... ⚠️ ⚙️⚙️⚙️")
     else:
         for order in orders:
-            # sql = f"SELECT * FROM FullProduct WHERE idFull = {int(t[1])};"
-            # k = factory.cursor.execute(sql).fetchall()
             full_products = factory.get_full_product(order[1])
             product = select_by_id_db(full_products[0][1])
             await bot.send_photo(call.from_user.id, photo=product[5])

@@ -11,13 +11,12 @@ async def ordering():
     order = cursor.execute(sql).fetchall()
     for i in order:
         s = f"SELECT idProduct FROM FullProduct WHERE idFull = {i[1]};"
-        t = cursor.execute(s).fetchone()
-        cursor.execute('INSERT INTO Basket (idProfile, idProduct) VALUES (?,?);', (i[2], t[0]))
+        # t = cursor.execute(s).fetchone()
+        # cursor.execute('INSERT INTO Basket (idProfile, idProduct) VALUES (?,?);', (i[2], t[0]))
         cursor.execute(f'UPDATE FullProduct SET count = count+{i[4]} WHERE idFull={i[1]};')
         connection.commit()
     cursor.execute(f"DELETE FROM Ordering WHERE pay=false;")
     connection.commit()
-    print(632562562)
 
 
 async def scheduler():
