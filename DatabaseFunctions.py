@@ -127,6 +127,7 @@ def ordering():
     connection.commit()
     print(632562562)
 
+
 if __name__ == "__main__":
     insert_db("Woman hoodie", "Beautiful oversize hoodie", 500, "Woman", "1.jpg", "Hoodies_woman")
     insert_db('Hoodie "dino"', "Hoodie with dino print", 600, "Woman", "2.jpg", "Hoodies_woman")
