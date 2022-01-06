@@ -125,7 +125,8 @@ def get_name_product_by_id(id_product):
 
 async def sql_add_command(id_element, id_user):
     print(id_user)
-    id_elements = cur.execute("SELECT * FROM Basket WHERE idProfile = ? AND idProduct = ?", (id_user, id_element)).fetchone()
+    id_elements = cur.execute("SELECT * FROM Basket WHERE idProfile = ? AND idProduct = ?",
+                              (id_user, id_element)).fetchone()
     if id_elements is None:
         cur.execute('INSERT INTO Basket (idProfile, idProduct) VALUES (?,?);', (id_user, id_element))
         base.commit()
@@ -145,21 +146,66 @@ async def add_callback_run(callback_query: types.CallbackQuery):
                  f"in your basket.", show_alert=True)
 
 
+@dp.callback_query_handler(lambda x: x.data and x.data.startswith('like '))
+async def add_callback_run(callback_query: types.CallbackQuery):
+    temp = cur.execute("SELECT * FROM Ordering WHERE pay = 1 AND idProfile =:currIdProfile AND idFull=(SELECT idFull "
+                       "from FullProduct where idProduct =:currId GROUP BY idProduct)",
+                       {"currIdProfile": callback_query.from_user.id,
+                        "currId": callback_query.data.replace('like ', '')}).fetchone()
+    if temp is not None:
+        review = cur.execute("SELECT * FROM Reviews WHERE idProduct = :currId",
+                             {"currId": callback_query.data.replace('like ', '')}).fetchone()
+        if review is None:
+            cur.execute("INSERT INTO Reviews VALUES (?,?,?);", (callback_query.data.replace('like ', ''), 1, 0))
+            base.commit()
+        else:
+            cur.execute("UPDATE Reviews SET likes=likes+1")
+            base.commit()
+        await callback_query.answer(text=f"Like for {get_name_product_by_id(callback_query.data.replace('like ', ''))}"
+                                         f" added.", show_alert=True)
+    else:
+        await callback_query.answer(text=f"You can't add a review without buying a product!", show_alert=True)
+
+
+@dp.callback_query_handler(lambda x: x.data and x.data.startswith('dislike '))
+async def add_callback_run(callback_query: types.CallbackQuery):
+    temp = cur.execute("SELECT * FROM Ordering WHERE pay = 1 AND idProfile =:currIdProfile AND idFull=(SELECT idFull "
+                       "from FullProduct where idProduct =:currId GROUP BY idProduct)",
+                       {"currIdProfile": callback_query.from_user.id,
+                        "currId": callback_query.data.replace('dislike ', '')}).fetchone()
+    if temp is not None:
+        review = cur.execute("SELECT * FROM Reviews WHERE idProduct = :currId",
+                             {"currId": callback_query.data.replace('dislike ', '')}).fetchone()
+        if review is None:
+            cur.execute("INSERT INTO Reviews VALUES (?,?,?);", (callback_query.data.replace('dislike ', ''), 0, 1))
+            base.commit()
+        else:
+            cur.execute("UPDATE Reviews SET dislikes=dislikes+1")
+            base.commit()
+        await callback_query.answer(text=f"Dislike for {get_name_product_by_id(callback_query.data.replace('dislike ', ''))}"
+                                         f" added.", show_alert=True)
+    else:
+        await callback_query.answer(text=f"You can't add a review without buying a product!", show_alert=True)
+
+
 async def sql_read(message, type_clothes):
     sql_start()
-    # for ret in cur.execute("SELECT * FROM Product WHERE type = :typeCl", {"typeCl": type_clothes}).fetchall():
-    #     await bot.send_photo(message.from_user.id, photo=open('1.jpg', 'rb'))
-    #     await bot.send_message(message.from_user.id, f'{ret[1]}\nDescription: {ret[2]}\nPrice: {ret[3]}')
-    #     await bot.send_message(message.from_user.id, text='^', reply_markup=InlineKeyboardMarkup(). \
-    #                            add(InlineKeyboardButton(f'Add to order {ret[1]}', callback_data=f'add {ret[0]}')))
     products = [select_by_id_db(i[0]) for i in
                 cur.execute("SELECT * FROM Product WHERE type = :typeCl", {"typeCl": type_clothes}).fetchall()]
     if not len(products):
         await message.answer("Empty category...")
     else:
         for product in products:
+            reviews = cur.execute("SELECT * FROM Reviews WHERE idProduct = :currId", {"currId": product[0]}).fetchone()
             await bot.send_photo(message.from_user.id, photo=product[5])
-            await bot.send_message(message.from_user.id, f'{product[1]}\nDescription: {product[2]}\nPrice: {product[3]}'
-                                   , reply_markup=InlineKeyboardMarkup().
-                                   add(InlineKeyboardButton(f'Add to order {product[1]}',
-                                                            callback_data=f'add {product[0]}')))
+            if reviews is not None:
+                await bot.send_message(message.from_user.id, f'👍: {reviews[1]}, 👎: {reviews[2]}')
+            await bot.send_message(message.from_user.id, f'{product[1]}\nDescription: {product[2]}\n'
+                                                         f'Price: {product[3]}\n',
+                                   reply_markup=InlineKeyboardMarkup().add(
+                                       InlineKeyboardButton(f'Add to order {product[1]}',
+                                                            callback_data=f'add {product[0]}')).add(
+                                       InlineKeyboardButton(f'Like {product[1]}',
+                                                            callback_data=f'like {product[0]}')).add(
+                                       InlineKeyboardButton(f'Dislike {product[1]}',
+                                                            callback_data=f'dislike {product[0]}')))
