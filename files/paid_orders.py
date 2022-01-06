@@ -1,38 +1,21 @@
-import sqlite3
-
 from aiogram import types
-from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
-    InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-import sqlite3 as sq
+from aiogram.types import CallbackQuery
+
 from dispatcher import dp, bot
-# from files.bot import kb
-from DatabaseFunctions import select_by_id_db, select_by_id_db_full
-import re
+from DatabaseFunctions import select_by_id_db
+from Factory import Factory
+factory = Factory("database.db")
 
 
-def sql_start():
-    global base, cur
-    base = sq.connect('database.db')
-    if base:
-        print('Database connected.')
-        cur = base.cursor()
-
-
-@dp.message_handler(lambda message: message.text == "Інформація")
-async def show_paid_orders(message: types.Message):
-    sql_start()
-    # orders = [i[0] for i in ]
-    orders = cur.execute(f"SELECT * FROM Ordering WHERE idProfile = "
-                                                         f"{message.from_user.id} AND pay=true;").fetchall()
-    if len(orders) == 0:
-        await message.answer("⚙️⚙️⚙️⚠️ It is so empty here... ⚠️ ⚙️⚙️⚙️")
+@dp.callback_query_handler(text="paid")
+async def show_paid_orders(call: CallbackQuery):
+    orders = factory.get_ordering(call.from_user.id, True)
+    if not orders:
+        await call.message.answer("⚙️⚙️⚙️⚠️ It is so empty here... ⚠️ ⚙️⚙️⚙️")
     else:
-        for t in orders:
-            connection = sqlite3.connect("database.db")
-            cursor = connection.cursor()
-            sql = f"SELECT * FROM FullProduct WHERE idFull = {int(t[1])};"
-            k = cursor.execute(sql).fetchall()
-            i = select_by_id_db(k[0][1])
-            await bot.send_photo(message.from_user.id, photo=i[5])
-            await bot.send_message(message.from_user.id, f'{i[1]}\nDescription: {i[2]}\nPrice: {i[3]*t[4]} Color: {k[0][3]} Size: {k[0][2]} Count: {t[4]}')
+        for order in orders:
+            full_products = factory.get_full_product(order[1])
+            product = select_by_id_db(full_products[0][1])
+            await bot.send_photo(call.from_user.id, photo=product[5])
+            await bot.send_message(call.from_user.id, f'{product[1]}\nDescription: {product[2]}\nPrice: {product[3]*order[4]} Color: {full_products[0][3]} Size: {full_products[0][2]} Count: {order[4]}')
 
