@@ -128,7 +128,7 @@ async def sql_add_command(id_element, id_user):
     id_elements = cur.execute("SELECT * FROM Basket WHERE idProfile = ? AND idProduct = ?",
                               (id_user, id_element)).fetchone()
     if id_elements is None:
-        cur.execute('INSERT INTO Basket (idProfile, idProduct) VALUES (?,?);', (id_user, id_element))
+        cur.execute('INSERT INTO Basket cur.execute(" VALUES (?,?);', (id_user, id_element))
         base.commit()
         return True
     else:
@@ -148,21 +148,24 @@ async def add_callback_run(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('like '))
 async def add_callback_run(callback_query: types.CallbackQuery):
-    temp = cur.execute("SELECT * FROM Ordering WHERE pay = 1 AND idProfile =:currIdProfile AND idFull=(SELECT idFull "
-                       "from FullProduct where idProduct =:currId GROUP BY idProduct)",
+    temp = cur.execute("SELECT * FROM Ordering WHERE pay = 1 AND idProfile =:currIdProfile AND idFull in (SELECT idFull"
+                       " from FullProduct where idProduct =:currId)",
                        {"currIdProfile": callback_query.from_user.id,
                         "currId": callback_query.data.replace('like ', '')}).fetchone()
     if temp is not None:
-        review = cur.execute("SELECT * FROM Reviews WHERE idProduct = :currId",
-                             {"currId": callback_query.data.replace('like ', '')}).fetchone()
+        review = cur.execute("SELECT * FROM Reviews WHERE idProduct = :currId AND idProfile =:currIdProfile",
+                             {"currId": callback_query.data.replace('like ', ''),
+                              "currIdProfile": callback_query.from_user.id}).fetchone()
         if review is None:
-            cur.execute("INSERT INTO Reviews VALUES (?,?,?);", (callback_query.data.replace('like ', ''), 1, 0))
+            cur.execute("INSERT INTO Reviews (idProduct, idProfile, likes, dislikes) VALUES (?,?,?,?);",
+                        (callback_query.data.replace('like ', ''),
+                         callback_query.from_user.id, 1, 0))
             base.commit()
+            await callback_query.answer(
+                text=f"Like for {get_name_product_by_id(callback_query.data.replace('like ', ''))}"
+                     f" added.", show_alert=True)
         else:
-            cur.execute("UPDATE Reviews SET likes=likes+1")
-            base.commit()
-        await callback_query.answer(text=f"Like for {get_name_product_by_id(callback_query.data.replace('like ', ''))}"
-                                         f" added.", show_alert=True)
+            await callback_query.answer(text=f"You've already added review for this product!", show_alert=True)
     else:
         await callback_query.answer(text=f"You can't add a review without buying a product!", show_alert=True)
 
@@ -172,18 +175,20 @@ async def add_callback_run(callback_query: types.CallbackQuery):
     temp = cur.execute("SELECT * FROM Ordering WHERE pay = 1 AND idProfile =:currIdProfile AND idFull=(SELECT idFull "
                        "from FullProduct where idProduct =:currId GROUP BY idProduct)",
                        {"currIdProfile": callback_query.from_user.id,
-                        "currId": callback_query.data.replace('dislike ', '')}).fetchone()
+                        "currId": callback_query.data.replace('like ', '')}).fetchone()
     if temp is not None:
-        review = cur.execute("SELECT * FROM Reviews WHERE idProduct = :currId",
-                             {"currId": callback_query.data.replace('dislike ', '')}).fetchone()
+        review = cur.execute("SELECT * FROM Reviews WHERE idProduct = :currId AND idProfile =:currIdProfile",
+                             {"currId": callback_query.data.replace('dislike ', ''),
+                              "currIdProfile": callback_query.from_user.id}).fetchone()
         if review is None:
-            cur.execute("INSERT INTO Reviews VALUES (?,?,?);", (callback_query.data.replace('dislike ', ''), 0, 1))
+            cur.execute("INSERT INTO Reviews VALUES (?,?,?,?);", (callback_query.data.replace('like ', ''),
+                                                                  callback_query.from_user.id, 0, 1))
             base.commit()
+            await callback_query.answer(
+                text=f"Like for {get_name_product_by_id(callback_query.data.replace('dislike ', ''))}"
+                     f" added.", show_alert=True)
         else:
-            cur.execute("UPDATE Reviews SET dislikes=dislikes+1")
-            base.commit()
-        await callback_query.answer(text=f"Dislike for {get_name_product_by_id(callback_query.data.replace('dislike ', ''))}"
-                                         f" added.", show_alert=True)
+            await callback_query.answer(text=f"You've already added review for this product!", show_alert=True)
     else:
         await callback_query.answer(text=f"You can't add a review without buying a product!", show_alert=True)
 
@@ -199,7 +204,11 @@ async def sql_read(message, type_clothes):
             reviews = cur.execute("SELECT * FROM Reviews WHERE idProduct = :currId", {"currId": product[0]}).fetchone()
             await bot.send_photo(message.from_user.id, photo=product[5])
             if reviews is not None:
-                await bot.send_message(message.from_user.id, f'👍: {reviews[1]}, 👎: {reviews[2]}')
+                likes = cur.execute("SELECT COUNT(*) FROM Reviews WHERE idProduct = :currId AND likes = 1",
+                                    {"currId": product[0]}).fetchone()[0]
+                dislikes = cur.execute("SELECT COUNT(*) FROM Reviews WHERE idProduct = :currId AND dislikes = 1",
+                                       {"currId": product[0]}).fetchone()[0]
+                await bot.send_message(message.from_user.id, f'👍: {likes}, 👎: {dislikes}')
             await bot.send_message(message.from_user.id, f'{product[1]}\nDescription: {product[2]}\n'
                                                          f'Price: {product[3]}\n',
                                    reply_markup=InlineKeyboardMarkup().add(
