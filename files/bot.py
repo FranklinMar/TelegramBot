@@ -9,7 +9,7 @@ from DatabaseFunctions import insert_db
 kb = ReplyKeyboardMarkup(resize_keyboard=True)
 kb.add(KeyboardButton('Профіль🙎‍♂️🙍‍♀️'))
 kb.add(KeyboardButton('Каталог🛍'))
-kb.add(KeyboardButton('Корзина'))
+kb.add(KeyboardButton('Корзина👜'))
 kb.add(KeyboardButton('Замовлення💵'))
 kb.add(KeyboardButton('Допомога🆘'))
 
