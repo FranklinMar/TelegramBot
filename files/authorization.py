@@ -100,7 +100,7 @@ async def passport_number_input(message: types.Message, state: FSMContext):
     await profile(message)
 
 
-@dp.message_handler(Text(equals="Cancel"))
+@dp.message_handler(Text(equals="🔙Cancel"))
 async def cancel(message: types.Message, state: FSMContext):
     await state.finish()
     await message.answer("Cancel",
