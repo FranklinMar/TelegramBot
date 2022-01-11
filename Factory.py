@@ -5,8 +5,6 @@ class Factory:
     def __init__(self, name_db):
         self.connector = sqlite3.connect(name_db)
         self.cursor = self.connector.cursor()
-        if self.connector:
-            print('Database connected.')
 
     def get_ordering(self, user_id, ind):
         order = self.cursor.execute(f"SELECT * FROM Ordering WHERE idProfile = "
