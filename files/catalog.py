@@ -1,11 +1,19 @@
 from aiogram import types
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import sqlite3 as sq
 
 from DatabaseFunctions import select_by_id_db
 from dispatcher import dp, bot
+from files.authorization import cancel
 from files.bot import kb
+
+
+class UserFilter(StatesGroup):
+    begin = State()
+    end = State()
 
 
 @dp.message_handler(lambda message: message.text == "Каталог🛍")
@@ -44,6 +52,57 @@ async def send_man(message: types.Message):
     await message.answer("Оберіть:", reply_markup=man)
 
 
+async def create_button(call, name):
+    ft = ReplyKeyboardMarkup()
+    ft.add(KeyboardButton("Сортувати за ціною"))
+    ft.add(KeyboardButton("Повернутись у меню"))
+    await bot.send_message(call.from_user.id, "Оберіть:", reply_markup=ft)
+
+    @dp.message_handler(text="Сортувати за ціною")
+    async def callback(message: types.Message):
+        await message.answer(text="Нижня межа ціни:",
+                             reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙Cancel")))
+        await UserFilter.begin.set()
+
+    @dp.message_handler(state=UserFilter.begin)
+    async def surname_input(message: types.Message, state: FSMContext):
+        if message.text == "Cancel":
+            await cancel(message, state)
+            return
+        try:
+            number_begin = int(message.text)
+        except:
+            await message.answer("Нижня межа ціни повинна бути числом😔")
+            return
+        if number_begin < 0:
+            await message.answer("Нижня межа ціни повинна бути більшою нуля😔")
+            return
+        await state.update_data(begin=number_begin)
+        await message.answer("Верхня межа ціни:")
+        await UserFilter.end.set()
+
+    @dp.message_handler(state=UserFilter.end)
+    async def surname_input(message: types.Message, state: FSMContext):
+        if message.text == "Cancel":
+            await cancel(message, state)
+            return
+        try:
+            number_end = int(message.text)
+        except:
+            await message.answer("Верхня межа ціни повинна бути числом😔")
+            return
+        if number_end < 0:
+            await message.answer("Верхня межа ціни повинна бути більшою нуля😔")
+            return
+        number = await state.get_data()
+        if number["begin"] > number_end:
+            await message.answer("Верхня межа ціни повинна бути більша нижньої😔")
+            return
+        await state.update_data(end=number_end)
+        await sql_read(message, name, await state.get_data())
+        await state.finish()
+
+
 @dp.callback_query_handler(text="Accessories_man")
 async def send_accessories(call: CallbackQuery):
     await call.message.answer("Accessories_man")
@@ -78,6 +137,7 @@ async def send_hoodies(call: CallbackQuery):
 async def send_hoodies(call: CallbackQuery):
     # await call.message.answer("Hoodies_woman")
     await sql_read(call, 'Hoodies_woman')
+    await create_button(call, 'Hoodies_woman')
 
 
 @dp.callback_query_handler(text="Accessories_woman")
@@ -193,10 +253,17 @@ async def add_callback_run(callback_query: types.CallbackQuery):
         await callback_query.answer(text=f"You can't add a review without buying a product!", show_alert=True)
 
 
-async def sql_read(message, type_clothes):
+async def sql_read(message, type_clothes, filter_price=None):
     sql_start()
-    products = [select_by_id_db(i[0]) for i in
+    if filter_price is None:
+        products = [select_by_id_db(i[0]) for i in
                 cur.execute("SELECT * FROM Product WHERE type = :typeCl", {"typeCl": type_clothes}).fetchall()]
+    else:
+        print(filter_price)
+        products = [select_by_id_db(i[0]) for i in
+                    cur.execute("SELECT * FROM Product WHERE type = :typeCl AND price>=:state_begin AND "
+                                "price<=:state_end", {"typeCl": type_clothes, "state_begin": filter_price["begin"],
+                                                      "state_end": filter_price["end"]}).fetchall()]
     if not len(products):
         await message.answer("Empty category...")
     else:
