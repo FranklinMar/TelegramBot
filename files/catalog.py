@@ -1,11 +1,10 @@
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-import sqlite3 as sq
 
-from DatabaseFunctions import select_by_id_db
+
 from Factory import Factory
 from dispatcher import dp, bot
 from files.authorization import cancel
@@ -247,11 +246,11 @@ async def add_callback_run(callback_query: types.CallbackQuery):
 
 async def sql_read(message, type_clothes, filter_price=None):
     if filter_price is None:
-        products = [select_by_id_db(i[0]) for i in
+        products = [factory.select_by_id_db(i[0]) for i in
                     factory.cursor.execute("SELECT * FROM Product WHERE type = :typeCl",
                                            {"typeCl": type_clothes}).fetchall()]
     else:
-        products = [select_by_id_db(i[0]) for i in
+        products = [factory.select_by_id_db(i[0]) for i in
                     factory.cursor.execute("SELECT * FROM Product WHERE type = :typeCl AND price>=:state_begin AND "
                                            "price<=:state_end", {"typeCl": type_clothes,
                                                                  "state_begin": filter_price["begin"],
