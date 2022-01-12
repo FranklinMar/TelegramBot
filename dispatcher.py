@@ -6,7 +6,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 logging.basicConfig(level=logging.INFO)
 
-PAYMENTS_PROVIDER_TOKEN = ''
+PAYMENTS_PROVIDER_TOKEN = '1744374395:TEST:0f14ba3dc119b4e69877'
 
 bot = Bot(token="", parse_mode=types.ParseMode.HTML)
 dp = Dispatcher(bot, storage=MemoryStorage())
