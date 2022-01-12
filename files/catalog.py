@@ -20,7 +20,7 @@ async def send_catalog(message: types.Message):
     kt = ReplyKeyboardMarkup()
     kt.add(KeyboardButton("Жіночий одяг"))
     kt.add(KeyboardButton('Чоловічий одяг'))
-    kt.add(KeyboardButton("Повернутись у меню"))
+    kt.add(KeyboardButton("🔙 Повернутись в головне меню"))
     await message.answer('Виберіть для кого цей товар', reply_markup=kt)
 
 
@@ -35,9 +35,9 @@ async def send_catalog(message: types.Message):
 #     await message.answer("Оберіть:", reply_markup=woman)
 
 
-@dp.message_handler(text="Повернутись у меню")
-async def send_back(message: types.Message):
-    await message.answer("Оберіть дію:", reply_markup=kb)
+# @dp.message_handler(text="Повернутись у меню")
+# async def send_back(message: types.Message):
+#     await message.answer("Оберіть дію:", reply_markup=kb)
 
 
 @dp.message_handler(text="Чоловічий одяг")
@@ -85,9 +85,9 @@ async def add_man_category(callback_query: types.CallbackQuery):
 
 
 async def create_button(call, name):
-    ft = ReplyKeyboardMarkup()
+    ft = ReplyKeyboardMarkup(resize_keyboard=True)
     ft.add(KeyboardButton("Сортувати за ціною"))
-    ft.add(KeyboardButton("Повернутись у меню"))
+    ft.add(KeyboardButton("🔙 Повернутись в головне меню"))
     await bot.send_message(call.from_user.id, "Оберіть:", reply_markup=ft)
 
     @dp.message_handler(text="Сортувати за ціною")
