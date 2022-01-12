@@ -4,7 +4,7 @@ from aiogram import types
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove, ReplyKeyboardMarkup, \
     KeyboardButton, CallbackQuery
 # import sqlite3 as sq
-from files.bot import process_start_command
+from files.bot import process_start_command, kb as kb
 from dispatcher import dp, bot
 from aiogram.dispatcher import FSMContext
 from dispatcher import factory as factory
@@ -61,7 +61,7 @@ async def amount_input(message: types.Message, state: FSMContext):
     factory.connector.commit()
     await state.finish()
     await message.answer(text=f'✅ Product successfully added to your order. ✅',
-                               reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text=f'⬇️ Back',
+                               reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text='⬇️ Back',
                                                                                         callback_data='basket')))  # ,
                          # show_alert=True)
     # await show_basket(message)
@@ -77,8 +77,10 @@ async def show_basket(message):
     basket = [select_by_id_db(i[0]) for i in factory.cursor.execute(f"SELECT idProduct FROM Basket WHERE idProfile = "
                                                          f"{message.from_user.id};")]
     if len(basket) == 0:
-        await message.answer("⚙️⚙️⚙️⚠️ It is so empty here... ⚠️ ⚙️⚙️⚙️")
+        await bot.send_message(message.from_user.id, "️⚠️ It is so empty here... ⚠️ ", reply_markup=
+        InlineKeyboardMarkup().add(InlineKeyboardButton('⬇️ Back', callback_data=f'startMenu')))
     else:
+        await bot.send_message(message.from_user.id, "---Your Basket---", reply_markup=ReplyKeyboardRemove())
         for i in basket:
             await bot.send_photo(message.from_user.id, photo=i[5])
             await bot.send_message(message.from_user.id, f'{i[1]}\nDescription: {i[2]}\nPrice: {i[3]}',
@@ -87,7 +89,7 @@ async def show_basket(message):
                                 callback_data=f'Delete {i[0]}')))
         # await bot.send_message(message.from_user.id, "Choose action", reply_markup=ReplyKeyboardRemove())
         await bot.send_message(message.from_user.id, "Choose action", reply_markup=InlineKeyboardMarkup()
-                               .add(InlineKeyboardButton(f'⬇️ Back', callback_data=f'startMenu')))
+                               .add(InlineKeyboardButton('⬇️ Back', callback_data=f'startMenu')))
 
 
 @dp.callback_query_handler(lambda c: re.match('Add [0-9]+', c.data))
@@ -108,7 +110,7 @@ async def process_color(callback_query: types.CallbackQuery):
         for i in temp:
             keyboard.add(InlineKeyboardButton(text=f'{i[0]}', callback_data=f'Size {callback_query.data.split()[1]}'
                                                                             f' {i[0]}'))
-        keyboard.add(InlineKeyboardButton(text=f'⬇️ Back', callback_data='basket'))
+        keyboard.add(InlineKeyboardButton(text='⬇️ Back', callback_data='basket'))
         # base.execute(f"")
         # pass
         # reply_markup = InlineKeyboardMarkup().add(InlineKeyboardButton(f'Add to buying ⏩🟢',
@@ -119,7 +121,7 @@ async def process_color(callback_query: types.CallbackQuery):
     else:
         await bot.send_message(callback_query.from_user.id, '🚫 Sorry, the storage is out of this product. 🚫\n'
                                                             '⚠️Try again next time.',
-                               reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text=f'⬇️ Back',
+                               reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text='⬇️ Back',
                                                                                             callback_data='basket')))
 
     # else:
@@ -145,7 +147,7 @@ async def process_size(callback_query: types.CallbackQuery):
         for i in temp:
             keyboard.add(InlineKeyboardButton(text=f'{i[1]}', callback_data=f'Count '
                                         f'{callback_query.data.split()[1]} {callback_query.data.split()[2]} {i[0]}'))
-        keyboard.add(InlineKeyboardButton(text=f'⬇️ Back', callback_data='basket'))
+        keyboard.add(InlineKeyboardButton(text='⬇️ Back', callback_data='basket'))
         # base.execute(f"")
         # pass
         # reply_markup = InlineKeyboardMarkup().add(InlineKeyboardButton(f'Add to buying ⏩🟢',
@@ -156,7 +158,7 @@ async def process_size(callback_query: types.CallbackQuery):
     else:
         await bot.send_message(callback_query.from_user.id, '🚫 Sorry, the storage is out of this product. 🚫\n'
                                                             '⚠️Try again next time.',
-                               reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text=f'⬇️ Back',
+                               reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text='⬇️ Back',
                                                                                             callback_data='basket')))
     # else:
     #     await bot.send_message(callback_query.from_user.id, "❌ Product is not in your basket. ❌")
@@ -173,7 +175,7 @@ async def process_count(callback_query: types.CallbackQuery, state: FSMContext):
     factory.cursor.execute(f"SELECT count FROM FullProduct WHERE idFull = {callback_query.data.split()[3]};")
     instance = factory.cursor.fetchone()
     if instance[0] > 0:
-        await bot.send_message(callback_query.from_user.id, f"ℹ️ No. of products available : {instance[0]}\n\n"
+        await bot.send_message(callback_query.from_user.id, f"ℹ️ Number of products available : {instance[0]}\n\n"
                                                             f"✔️ Enter the amount of products to order 🔢")
         async with state.proxy() as data:
             data['idFull'] = callback_query.data.split()[3]
@@ -182,7 +184,7 @@ async def process_count(callback_query: types.CallbackQuery, state: FSMContext):
     else:
         await bot.send_message(callback_query.from_user.id, '🚫 Sorry, the storage is out of this product. 🚫\n'
                                                             '⚠️Try again next time.',
-                               reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text=f'⬇️ Back',
+                               reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text='⬇️ Back',
                                                                                             callback_data='basket')))
         # await show_basket(callback_query.message)
     # cur.execute(f"SELECT id, size FROM FullProduct WHERE idProduct = {ids[2]} AND size = "
@@ -197,20 +199,20 @@ async def process_deleting(callback_query: types.CallbackQuery):
     ids = int(callback_query.data.split()[1])
     factory.cursor.execute(f"SELECT idBasket, idProduct FROM Basket WHERE idProfile = {callback_query.from_user.id} "
                 f"AND idProduct = {ids};")
-    ids = factory.cursor.fetchone()[0]
+    ids = factory.cursor.fetchone()
     if ids:
-        factory.connector.execute(f"DELETE FROM Basket WHERE idBasket = {ids};")
+        factory.connector.execute(f"DELETE FROM Basket WHERE idBasket = {ids[0]};")
         factory.connector.commit()
         # await callback_query.answer(text=f'✅ Product successfully removed from your basket. ✅',
         #                             show_alert=True)
         await bot.send_message(callback_query.from_user.id, '✅ Product successfully removed from your basket. ✅',
-                            reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text=f'⬇️ Back',
-                            callback_data='basket')))
+                               reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text='⬇️ Back',
+                                                                                            callback_data='basket')))
         # await bot.send_message(callback_query.from_user.id, f'✅ Product successfully removed from your basket. ✅')
-        await show_basket(callback_query.message)
+        # await show_basket(callback_query.message)
     else:
         await bot.send_message(callback_query.from_user.id, "❌ Product is not in your basket. ❌",
-                               reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text=f'⬇️ Back',
+                               reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text='⬇️ Back',
                                                                                             callback_data='basket')))
         # await show_basket(callback_query.message)
         # message.answer("❌ Product is not in your basket. ❌")
@@ -223,9 +225,10 @@ async def process_redirect(callback_query: types.CallbackQuery):
 
 
 @dp.callback_query_handler(lambda c: "basket" == c.data)
-async def process_redirect(callback_query: types.CallbackQuery):
+async def process_basket(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id)
     await show_basket(callback_query)
+    # print("Showbasket called")
 
 # @dp.callback_query_handler(func=lambda c: c.data == 'button1')
 # async def process_callback_button1(callback_query: types.CallbackQuery):
