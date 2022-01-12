@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import sqlite3
+
 from aiogram import types
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
@@ -9,23 +11,26 @@ from DatabaseFunctions import select_by_id_db
 from aiogram.utils import executor
 from aiogram.dispatcher import Dispatcher
 from aiogram.types.message import ContentType
+
+from Factory import Factory
 from dispatcher import dp, bot, PAYMENTS_PROVIDER_TOKEN
+from files.bot import kb
 from messages import MESSAGES
 
+# import ordering
 
 logging.basicConfig(format=u'%(filename)+13s [ LINE:%(lineno)-4s] %(levelname)-8s [%(asctime)s] %(message)s',
                     level=logging.INFO)
-
 
 loop = asyncio.get_event_loop()
 # bot = Bot(BOT_TOKEN, parse_mode=types.ParseMode.HTML)
 # dp = Dispatcher(bot, loop=loop)
 
+connection = sqlite3.connect("database.db")
+cursor = connection.cursor()
+
 # Setup prices
-PRICES = [
-    types.LabeledPrice(label='Product', amount=4200000),
-    types.LabeledPrice(label='Product', amount=30000)
-]
+PRICES = []
 
 # Setup shipping options
 DEFAULT_SHIPPING_OPTION = types.ShippingOption(
@@ -60,8 +65,18 @@ async def process_terms_command(message: types.Message):
     await message.reply(MESSAGES['terms'], reply=False)
 
 
-@dp.message_handler(commands=['buy'])
+factory = Factory("database.db")
+
+
+@dp.message_handler(lambda message: message.text == "Pay💰")
 async def process_buy_command(message: types.Message):
+    orders = factory.get_ordering(message.from_user.id, False)
+    price = 0
+    for order in orders:
+        full_products = factory.get_full_product(order[1])
+        product = select_by_id_db(full_products[0][1])
+        price = int(product[3] * order[4]) * 100
+        PRICES.append(types.LabeledPrice(label=product[1], amount=price))
     if PAYMENTS_PROVIDER_TOKEN.split(':')[1] == 'TEST':
         await bot.send_message(message.chat.id, MESSAGES['pre_buy_demo_alert'])
 
@@ -79,7 +94,7 @@ async def process_buy_command(message: types.Message):
                            # need_shipping_address=True,
                            is_flexible=True,  # True If you need to set up Shipping Fee
                            prices=PRICES,
-                           start_parameter='time-machine-example',
+                           # start_parameter='time-machine-example',
                            payload='some-invoice-payload-for-our-internal-use')
 
 
@@ -87,27 +102,26 @@ async def process_buy_command(message: types.Message):
 async def process_shipping_query(shipping_query: types.ShippingQuery):
     print('shipping_query.shipping_address')
     print(shipping_query.shipping_address)
-
-    if shipping_query.shipping_address.country_code == 'AU':
-        return await bot.answer_shipping_query(
-            shipping_query.id,
-            ok=False,
-            error_message=MESSAGES['AU_error']
-        )
+    #
+    #     if shipping_query.shipping_address.country_code == 'AU':
+    #         return await bot.answer_shipping_query(
+    #             shipping_query.id,
+    #             ok=False,
+    #             error_message=MESSAGES['AU_error']
+    #         )
 
     shipping_options = [DEFAULT_SHIPPING_OPTION]
 
     if shipping_query.shipping_address.country_code == 'UA':
         shipping_options.append(UKRAINE_POST_SHIPPING_OPTION)
-
         if shipping_query.shipping_address.city == 'Київ':
             shipping_options.append(PICKUP_SHIPPING_OPTION)
 
-    await bot.answer_shipping_query(
-        shipping_query.id,
-        ok=True,
-        shipping_options=shipping_options
-    )
+        await bot.answer_shipping_query(
+            shipping_query.id,
+            ok=True,
+            shipping_options=shipping_options
+        )
 
 
 @dp.pre_checkout_query_handler(lambda query: True)
@@ -115,11 +129,11 @@ async def process_pre_checkout_query(pre_checkout_query: types.PreCheckoutQuery)
     print('order_info')
     print(pre_checkout_query.order_info)
 
-    if hasattr(pre_checkout_query.order_info, 'email'):
-        return await bot.answer_pre_checkout_query(
-            pre_checkout_query.id,
-            ok=False,
-            error_message=MESSAGES['wrong_email'])
+    # if hasattr(pre_checkout_query.order_info, 'email'):
+    #     return await bot.answer_pre_checkout_query(
+    #         pre_checkout_query.id,
+    #         ok=False,
+    #         error_message=MESSAGES['wrong_email'])
 
     await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
 
@@ -129,11 +143,10 @@ async def process_successful_payment(message: types.Message):
     await bot.send_message(
         message.chat.id,
         MESSAGES['successful_payment'].format(
-            total_amount=message.successful_payment.total_amount // 100,
+            total_amount=message.successful_payment.total_amount,
             currency=message.successful_payment.currency
         )
     )
 
-
-if __name__ == '__main__':
-    executor.start_polling(dp, loop=loop)
+    # if name == 'main':
+    #     executor.start_polling(dp, loop=loop)

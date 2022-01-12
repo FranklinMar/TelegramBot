@@ -181,7 +181,7 @@ async def sql_add_command(id_element, id_user):
     id_elements = factory.cursor.execute("SELECT * FROM Basket WHERE idProfile = ? AND idProduct = ?",
                                          (id_user, id_element)).fetchone()
     if id_elements is None:
-        factory.cursor.execute('INSERT INTO Basket cur.execute(" VALUES (?,?);', (id_user, id_element))
+        factory.cursor.execute('INSERT INTO Basket (idProfile, idProduct) VALUES (?,?);', (id_user, id_element))
         factory.connector.commit()
         return True
     else:
@@ -225,11 +225,11 @@ async def add_callback_run(callback_query: types.CallbackQuery):
 
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('dislike '))
 async def add_callback_run(callback_query: types.CallbackQuery):
-    temp = factory.cursor.execute("SELECT * FROM Ordering WHERE pay = 1 AND idProfile =:currIdProfile AND idFull=("
-                                  "SELECT idFull from FullProduct where idProduct =:currId GROUP BY idProduct)",
+    temp = factory.cursor.execute("SELECT * FROM Ordering WHERE pay = 1 AND idProfile =:currIdProfile AND idFull in "
+                                  "(SELECT idFull from FullProduct where idProduct =:currId)",
                                   {"currIdProfile": callback_query.from_user.id,
                                    "currId": callback_query.data.replace('like ', '')}).fetchone()
-    if temp is not None:
+    if temp is None:
         review = factory.cursor.execute("SELECT * FROM Reviews WHERE idProduct = :currId AND idProfile =:currIdProfile",
                                         {"currId": callback_query.data.replace('dislike ', ''),
                                          "currIdProfile": callback_query.from_user.id}).fetchone()

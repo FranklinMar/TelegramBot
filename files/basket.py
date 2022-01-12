@@ -67,7 +67,7 @@ async def amount_input(message: types.Message, state: FSMContext):
     # await show_basket(message)
 
 
-@dp.message_handler(lambda message: message.text == "Корзина")
+@dp.message_handler(lambda message: message.text == "Корзина👜")
 async def show_basket(message):
     # ids = message.from_user.id
     # show(message)
