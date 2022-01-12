@@ -2,15 +2,12 @@ from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, \
-    InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+    InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, callback_query
 from dispatcher import factory
 
-from Factory import Factory
 from dispatcher import dp, bot
 from files.authorization import cancel
 from files.bot import kb
-
-# factory = Factory("database.db")
 
 
 class UserFilter(StatesGroup):
@@ -27,15 +24,15 @@ async def send_catalog(message: types.Message):
     await message.answer('Виберіть для кого цей товар', reply_markup=kt)
 
 
-@dp.message_handler(text="Жіночий одяг")
-async def send_woman(message: types.Message):
-    woman = InlineKeyboardMarkup()
-    woman.add(InlineKeyboardButton(text="Верхній одяг", callback_data="Outerwear_woman"))
-    woman.add(InlineKeyboardButton(text="Толстовки", callback_data="Hoodies_woman"))
-    woman.add(InlineKeyboardButton(text="Аксесуари", callback_data="Accessories_woman"))
-    woman.add(InlineKeyboardButton(text="Штани", callback_data="Pants_woman"))
-    woman.add(InlineKeyboardButton(text="Білизна", callback_data="Underwear_woman"))
-    await message.answer("Оберіть:", reply_markup=woman)
+# @dp.message_handler(text="Жіночий одяг")
+# async def send_woman(message: types.Message):
+#     woman = InlineKeyboardMarkup()
+#     woman.add(InlineKeyboardButton(text="Верхній одяг", callback_data="Outerwear_woman"))
+#     woman.add(InlineKeyboardButton(text="Толстовки", callback_data="Hoodies_woman"))
+#     woman.add(InlineKeyboardButton(text="Аксесуари", callback_data="Accessories_woman"))
+#     woman.add(InlineKeyboardButton(text="Штани", callback_data="Pants_woman"))
+#     woman.add(InlineKeyboardButton(text="Білизна", callback_data="Underwear_woman"))
+#     await message.answer("Оберіть:", reply_markup=woman)
 
 
 @dp.message_handler(text="Повернутись у меню")
@@ -46,12 +43,45 @@ async def send_back(message: types.Message):
 @dp.message_handler(text="Чоловічий одяг")
 async def send_man(message: types.Message):
     man = InlineKeyboardMarkup()
-    man.add(InlineKeyboardButton(text="Верхній одяг", callback_data="Outerwear_man"))
-    man.add(InlineKeyboardButton(text="Толстовки", callback_data="Hoodies_man"))
-    man.add(InlineKeyboardButton(text="Аксесуари", callback_data="Accessories_man"))
-    man.add(InlineKeyboardButton(text="Штани", callback_data="Pants_man"))
-    man.add(InlineKeyboardButton(text="Білизна", callback_data="Underwear_man"))
+    categories = {
+        "Верхній одяг": "Outerwear_man",
+        "Толстовки": "Hoodies_man",
+        "Аксесуари": "Accessories_man",
+        "Штани": "Pants_man",
+        "Білизна": "Underwear_man"
+    }
+    keys = categories.keys()
+    for category in keys:
+        man.add(InlineKeyboardButton(text=f'{category}', callback_data=f'man {categories[category]}'))
     await message.answer("Оберіть:", reply_markup=man)
+
+
+@dp.callback_query_handler(lambda x: x.data and x.data.startswith('man '))
+async def add_man_category(callback_query: types.CallbackQuery):
+    await sql_read(callback_query, callback_query.data.replace('man ', ''))
+    await create_button(callback_query, callback_query.data.replace('man ', ''))
+
+
+@dp.message_handler(text="Жіночий одяг")
+async def send_woman(message: types.Message):
+    woman = InlineKeyboardMarkup()
+    categories = {
+        "Верхній одяг": "Outerwear_woman",
+        "Толстовки": "Hoodies_woman",
+        "Аксесуари": "Accessories_woman",
+        "Штани": "Pants_woman",
+        "Білизна": "Underwear_woman"
+    }
+    keys = categories.keys()
+    for category in keys:
+        woman.add(InlineKeyboardButton(text=f'{category}', callback_data=f'woman {categories[category]}'))
+    await message.answer("Оберіть:", reply_markup=woman)
+
+
+@dp.callback_query_handler(lambda x: x.data and x.data.startswith('woman '))
+async def add_man_category(callback_query: types.CallbackQuery):
+    await sql_read(callback_query, callback_query.data.replace('woman ', ''))
+    await create_button(callback_query, callback_query.data.replace('woman ', ''))
 
 
 async def create_button(call, name):
@@ -103,72 +133,6 @@ async def create_button(call, name):
         await state.update_data(end=number_end)
         await sql_read(message, name, await state.get_data())
         await state.finish()
-
-
-@dp.callback_query_handler(text="Accessories_man")
-async def send_accessories(call: CallbackQuery):
-    await sql_read(call, 'Accessories_man')
-    await create_button(call, 'Accessories_man')
-
-
-@dp.callback_query_handler(text="Accessories_woman")
-async def send_accessories(call: CallbackQuery):
-    await sql_read(call, 'Accessories_woman')
-    await create_button(call, 'Accessories_woman')
-
-
-@dp.callback_query_handler(text="Outerwear_man")
-async def send_outerwear(call: CallbackQuery):
-    await sql_read(call, 'Outerwear_man')
-    await create_button(call, 'Outerwear_man')
-
-
-@dp.callback_query_handler(text="Outerwear_woman")
-async def send_outerwear(call: CallbackQuery):
-    await sql_read(call, 'Outerwear_woman')
-    await create_button(call, 'Outerwear_woman')
-
-
-@dp.callback_query_handler(text="Hoodies_man")
-async def send_hoodies(call: CallbackQuery):
-    await sql_read(call, 'Hoodies_man')
-    await create_button(call, 'Hoodies_man')
-
-
-@dp.callback_query_handler(text="Hoodies_woman")
-async def send_hoodies(call: CallbackQuery):
-    await sql_read(call, 'Hoodies_woman')
-    await create_button(call, 'Hoodies_woman')
-
-
-@dp.callback_query_handler(text="Accessories_woman")
-async def send_accessories(call: CallbackQuery):
-    await sql_read(call, 'Accessories_woman')
-    await create_button(call, 'Accessories_woman')
-
-
-@dp.callback_query_handler(text="Pants_man")
-async def send_pants(call: CallbackQuery):
-    await sql_read(call, 'Pants_man')
-    await create_button(call, 'Pants_man')
-
-
-@dp.callback_query_handler(text="Pants_woman")
-async def send_pants(call: CallbackQuery):
-    await sql_read(call, 'Pants_woman')
-    await create_button(call, 'Pants_woman')
-
-
-@dp.callback_query_handler(text="Underwear_man")
-async def send_underwear(call: CallbackQuery):
-    await sql_read(call, 'Underwear_man')
-    await create_button(call, 'Underwear_man')
-
-
-@dp.callback_query_handler(text="Underwear_woman")
-async def send_underwear(call: CallbackQuery):
-    await sql_read(call, 'Underwear_woman')
-    await create_button(call, 'Underwear_woman')
 
 
 def get_name_product_by_id(id_product):

@@ -36,18 +36,18 @@ PRICES = []
 DEFAULT_SHIPPING_OPTION = types.ShippingOption(
     id='default',
     title='Нова пошта'
-).add(types.LabeledPrice('Нова пошта', 1000000))
+).add(types.LabeledPrice('Нова пошта', 50000))
 
 UKRAINE_POST_SHIPPING_OPTION = types.ShippingOption(
     id='uk_post', title='Укр пошта')
 
 UKRAINE_POST_SHIPPING_OPTION.add(
     types.LabeledPrice(
-        'Укр пошта', 100000)
+        'Укр пошта', 10000)
 )
 
 PICKUP_SHIPPING_OPTION = types.ShippingOption(id='pickup', title='Самовивіз')
-PICKUP_SHIPPING_OPTION.add(types.LabeledPrice('Самовивіз', 50000))
+PICKUP_SHIPPING_OPTION.add(types.LabeledPrice('Самовивіз', 1000))
 
 
 @dp.message_handler(commands=['start'])
@@ -68,7 +68,7 @@ async def process_terms_command(message: types.Message):
 factory = Factory("database.db")
 
 
-@dp.message_handler(lambda message: message.text == "Pay💰")
+@dp.message_handler(lambda message: message.text == "Перейти до оплати")
 async def process_buy_command(message: types.Message):
     orders = factory.get_ordering(message.from_user.id, False)
     price = 0
@@ -96,19 +96,27 @@ async def process_buy_command(message: types.Message):
                            prices=PRICES,
                            # start_parameter='time-machine-example',
                            payload='some-invoice-payload-for-our-internal-use')
+    # factory.cursor.execute("Update ordering set pay = True")
+    sql = """UPDATE Ordering SET pay = True"""
+    cursor.execute(sql)
+    connection.commit()
+
+    sql = "DELETE FROM Basket " \
+           "WHERE idProfile in (SELECT idProfile FROM Ordering WHERE pay = True)"
+    cursor.execute(sql)
+    connection.commit()
+
+
+# SELECT *
+# FROM inhabitant
+# WHERE phone_number in (select phone_number from client WHERE email="markr@gmail.com");
+
 
 
 @dp.shipping_query_handler(lambda query: True)
 async def process_shipping_query(shipping_query: types.ShippingQuery):
     print('shipping_query.shipping_address')
     print(shipping_query.shipping_address)
-    #
-    #     if shipping_query.shipping_address.country_code == 'AU':
-    #         return await bot.answer_shipping_query(
-    #             shipping_query.id,
-    #             ok=False,
-    #             error_message=MESSAGES['AU_error']
-    #         )
 
     shipping_options = [DEFAULT_SHIPPING_OPTION]
 
@@ -116,12 +124,19 @@ async def process_shipping_query(shipping_query: types.ShippingQuery):
         shipping_options.append(UKRAINE_POST_SHIPPING_OPTION)
         if shipping_query.shipping_address.city == 'Київ':
             shipping_options.append(PICKUP_SHIPPING_OPTION)
-
+    # else:
+    #     return await bot.answer_shipping_query(
+    #         shipping_query.id,
+    #         ok=False,
+    #         error_message=MESSAGES['AU_error']
+    #     )
         await bot.answer_shipping_query(
             shipping_query.id,
             ok=True,
             shipping_options=shipping_options
         )
+
+
 
 
 @dp.pre_checkout_query_handler(lambda query: True)
@@ -143,10 +158,11 @@ async def process_successful_payment(message: types.Message):
     await bot.send_message(
         message.chat.id,
         MESSAGES['successful_payment'].format(
-            total_amount=message.successful_payment.total_amount,
+            total_amount=message.successful_payment.total_amount//100,
             currency=message.successful_payment.currency
         )
     )
+
 
     # if name == 'main':
     #     executor.start_polling(dp, loop=loop)
