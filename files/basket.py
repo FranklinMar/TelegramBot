@@ -51,7 +51,7 @@ async def amount_input(message: types.Message, state: FSMContext):
                                         callback_data='basket')))
 
 
-@dp.message_handler(lambda message: message.text == "Корзина")
+@dp.message_handler(lambda message: message.text == "Корзина👜")
 async def show_basket(message):
     basket = [select_by_id_db(i[0]) for i in factory.cursor.execute(f"SELECT idProduct FROM Basket WHERE idProfile = "
                                                          f"{message.from_user.id};")]
