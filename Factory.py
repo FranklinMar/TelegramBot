@@ -21,7 +21,7 @@ class Factory:
         return order
 
     def get_full_product(self, id_full):
-        fulls = self.cursor.execute(f"SELECT * FROM FullProduct WHERE idFull = {id_full};").fetchall()
+        fulls = self.cursor.execute(f"SELECT * FROM FullProduct, Product WHERE FullProduct.idFull = {id_full} AND FullProduct.idProduct=Product.idProduct;").fetchall()
         return fulls
 
     def insert_db(self, name, description=None, price=0, sex=None, image=None, types=None):

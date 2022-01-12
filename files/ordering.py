@@ -27,11 +27,10 @@ async def show_orders(call: CallbackQuery):
     else:
         for order in orders:
             full_products = factory.get_full_product(order[1])
-            product = factory.select_by_id_db(full_products[0][1])
-            price += product[3]*order[4]
-            await bot.send_photo(call.from_user.id, photo=product[5])
+            price += full_products[0][8]*order[4]
+            await bot.send_photo(call.from_user.id, photo=full_products[0][10])
             await bot.send_message(call.from_user.id,
-                                   f'{product[1]}\nОпис: {product[2]}\nЦіна: {product[3] } \nКолір: {full_products[0][3]} \nРозмір: {full_products[0][2]} \nКількість: {order[4]}',
+                                   f'{full_products[0][6]}\nОпис: {full_products[0][7]}\nЦіна: {full_products[0][8] } \nКолір: {full_products[0][3]} \nРозмір: {full_products[0][2]} \nКількість: {order[4]}',
                                    reply_markup=InlineKeyboardMarkup().add(
                                        InlineKeyboardButton(f'Видалити з замовлення ❌',
                                                             callback_data=f'Del {order[0]}')))
