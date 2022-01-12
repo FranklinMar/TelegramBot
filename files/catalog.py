@@ -64,12 +64,12 @@ async def create_button(call, name):
     @dp.message_handler(text="Сортувати за ціною")
     async def callback(message: types.Message):
         await message.answer(text="Нижня межа ціни:",
-                             reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙Cancel")))
+                             reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙Назад")))
         await UserFilter.begin.set()
 
     @dp.message_handler(state=UserFilter.begin)
     async def surname_input(message: types.Message, state: FSMContext):
-        if message.text == "Cancel":
+        if message.text == "🔙Назад":
             await cancel(message, state)
             return
         try:
@@ -86,7 +86,7 @@ async def create_button(call, name):
 
     @dp.message_handler(state=UserFilter.end)
     async def surname_input(message: types.Message, state: FSMContext):
-        if message.text == "Cancel":
+        if message.text == "🔙Назад":
             await cancel(message, state)
             return
         try:
@@ -191,12 +191,11 @@ async def sql_add_command(id_element, id_user):
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('add '))
 async def add_callback_run(callback_query: types.CallbackQuery):
     if await sql_add_command(callback_query.data.replace('add ', ''), callback_query.from_user.id):
-        await callback_query.answer(text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} added.",
+        await callback_query.answer(text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} додано.",
                                     show_alert=True)
     else:
         await callback_query.answer(
-            text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} is already "
-                 f"in your basket.", show_alert=True)
+            text=f"{get_name_product_by_id(callback_query.data.replace('add ', ''))} вже є у Вашій корзині.", show_alert=True)
 
 
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('like '))
@@ -218,9 +217,9 @@ async def add_callback_run(callback_query: types.CallbackQuery):
                 text=f"Like for {get_name_product_by_id(callback_query.data.replace('like ', ''))}"
                      f" added.", show_alert=True)
         else:
-            await callback_query.answer(text=f"You've already added review for this product!", show_alert=True)
+            await callback_query.answer(text=f"Ви вже додаали відгук на цей товар!", show_alert=True)
     else:
-        await callback_query.answer(text=f"You can't add a review without buying a product!", show_alert=True)
+        await callback_query.answer(text=f"Ви не можете додати відгук без покупки товару!", show_alert=True)
 
 
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('dislike '))
@@ -238,12 +237,12 @@ async def add_callback_run(callback_query: types.CallbackQuery):
                                                                              callback_query.from_user.id, 0, 1))
             factory.connector.commit()
             await callback_query.answer(
-                text=f"Like for {get_name_product_by_id(callback_query.data.replace('dislike ', ''))}"
-                     f" added.", show_alert=True)
+                text=f"👍 для {get_name_product_by_id(callback_query.data.replace('dislike ', ''))}"
+                     f" додано.", show_alert=True)
         else:
-            await callback_query.answer(text=f"You've already added review for this product!", show_alert=True)
+            await callback_query.answer(text=f"Ви вже додаали відгук на цей товар!", show_alert=True)
     else:
-        await callback_query.answer(text=f"You can't add a review without buying a product!", show_alert=True)
+        await callback_query.answer(text=f"Ви не можете додати відгук без покупки товару!", show_alert=True)
 
 
 async def sql_read(message, type_clothes, filter_price=None):
@@ -258,7 +257,7 @@ async def sql_read(message, type_clothes, filter_price=None):
                                                                  "state_begin": filter_price["begin"],
                                                                  "state_end": filter_price["end"]}).fetchall()]
     if not len(products):
-        await message.answer("Empty category...")
+        await message.answer("Порожня категорія...")
     else:
         for product in products:
             reviews = factory.cursor.execute("SELECT * FROM Reviews WHERE idProduct = :currId",
@@ -271,12 +270,12 @@ async def sql_read(message, type_clothes, filter_price=None):
                     factory.cursor.execute("SELECT COUNT(*) FROM Reviews WHERE idProduct = :currId AND dislikes = 1",
                                            {"currId": product[0]}).fetchone()[0]
                 await bot.send_message(message.from_user.id, f'👍: {likes}, 👎: {dislikes}')
-            await bot.send_message(message.from_user.id, f'{product[1]}\nDescription: {product[2]}\n'
-                                                         f'Price: {product[3]}\n',
+            await bot.send_message(message.from_user.id, f'{product[1]}\nОпис: {product[2]}\n'
+                                                         f'Ціна: {product[3]}\n',
                                    reply_markup=InlineKeyboardMarkup().add(
-                                       InlineKeyboardButton(f'Add to order {product[1]}',
+                                       InlineKeyboardButton(f'Додати в корзину {product[1]}',
                                                             callback_data=f'add {product[0]}')).add(
-                                       InlineKeyboardButton(f'Like {product[1]}',
+                                       InlineKeyboardButton(f'Лайкнути {product[1]}',
                                                             callback_data=f'like {product[0]}')).add(
-                                       InlineKeyboardButton(f'Dislike {product[1]}',
+                                       InlineKeyboardButton(f'Дізлайкнути {product[1]}',
                                                             callback_data=f'dislike {product[0]}')))
