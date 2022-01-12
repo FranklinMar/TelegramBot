@@ -8,5 +8,5 @@ logging.basicConfig(level=logging.INFO)
 
 PAYMENTS_PROVIDER_TOKEN = ''
 
-bot = Bot(token="", parse_mode=types.ParseMode.HTML)
+bot = Bot(token="5092128224:AAFvhxQ_86nBnlFzZ2y81biwP2xjZuoHFjU", parse_mode=types.ParseMode.HTML)
 dp = Dispatcher(bot, storage=MemoryStorage())

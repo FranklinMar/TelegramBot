@@ -181,7 +181,7 @@ async def sql_add_command(id_element, id_user):
     id_elements = factory.cursor.execute("SELECT * FROM Basket WHERE idProfile = ? AND idProduct = ?",
                                          (id_user, id_element)).fetchone()
     if id_elements is None:
-        factory.cursor.execute('INSERT INTO Basket cur.execute(" VALUES (?,?);', (id_user, id_element))
+        factory.cursor.execute('INSERT INTO Basket (idProfile, idProduct) VALUES (?,?);', (id_user, id_element))
         factory.connector.commit()
         return True
     else:
