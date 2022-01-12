@@ -93,7 +93,7 @@ async def phone_number_input(message: types.Message, state: FSMContext):
     data = (new_user["surname"], new_user["name"], new_user["patronymic"], new_user["phone_number"], message.from_user.id)
     factory.cursor.execute(sql, data)
     factory.connector.commit()
-    await message.answer("Реєстрацію завершено✅")
+    await message.answer("Реєстрацію завершено✅", reply_markup=ReplyKeyboardRemove())
     await state.finish()
     await profile(message)
 
@@ -131,7 +131,12 @@ async def no(message: types.Message):
         await message.answer("Виберіть операцію", reply_markup=kb)
     if string == "help":
         from files.help import helps
+        await message.answer("Дякуємо за реєстрацію", reply_markup=ReplyKeyboardRemove())
         await helps(message)
+    if string=='pay':
+        from files.payment import process_buy_command
+        await message.answer("Дякуємо за реєстрацію", reply_markup=ReplyKeyboardRemove())
+        await process_buy_command(message)
 
 
 @dp.message_handler(text="Відмінити")

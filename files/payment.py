@@ -14,7 +14,9 @@ from aiogram.types.message import ContentType
 
 from Factory import Factory
 from dispatcher import dp, bot, PAYMENTS_PROVIDER_TOKEN
+from files.authorization import my_profile, register_start
 from files.bot import kb
+from files.help import Support
 from messages import MESSAGES
 
 # import ordering
@@ -68,50 +70,43 @@ async def process_terms_command(message: types.Message):
 factory = Factory("database.db")
 
 
-@dp.message_handler(lambda message: message.text == "Перейти до оплати")
+@dp.message_handler(lambda message: message.text == "Перейти до оплати💶")
 async def process_buy_command(message: types.Message):
-    orders = factory.get_ordering(message.from_user.id, False)
-    price = 0
-    for order in orders:
-        full_products = factory.get_full_product(order[1])
-        product = select_by_id_db(full_products[0][1])
-        price = int(product[3] * order[4]) * 100
-        PRICES.append(types.LabeledPrice(label=product[1], amount=price))
-    if PAYMENTS_PROVIDER_TOKEN.split(':')[1] == 'TEST':
-        await bot.send_message(message.chat.id, MESSAGES['pre_buy_demo_alert'])
+    if not my_profile(message.from_user.id):
+        await message.answer("У вас немає профілю зареєструйтесь будь ласка")
+        await register_start(message, "pay")
+    else:
+        orders = factory.get_ordering(message.from_user.id, False)
+        price = 0
+        for order in orders:
+            full_products = factory.get_full_product(order[1])
+            product = select_by_id_db(full_products[0][1])
+            price = int(product[3] * order[4]) * 100
+            PRICES.append(types.LabeledPrice(label=product[1], amount=price))
+        if PAYMENTS_PROVIDER_TOKEN.split(':')[1] == 'TEST':
+            await bot.send_message(message.chat.id, MESSAGES['pre_buy_demo_alert'])
 
-    await bot.send_invoice(message.chat.id,
-                           title=MESSAGES['tm_title'],
-                           description=MESSAGES['tm_description'],
-                           provider_token=PAYMENTS_PROVIDER_TOKEN,
-                           currency='rub',
+        await bot.send_invoice(message.chat.id,
+                               title=MESSAGES['tm_title'],
+                               description=MESSAGES['tm_description'],
+                               provider_token=PAYMENTS_PROVIDER_TOKEN,
+                               currency='rub',
+                               need_email=True,
+                               need_phone_number=True,
+                               # need_shipping_address=True,
+                               is_flexible=True,  # True If you need to set up Shipping Fee
+                               prices=PRICES,
+                               # start_parameter='time-machine-example',
+                               payload='some-invoice-payload-for-our-internal-use')
+        # factory.cursor.execute("Update ordering set pay = True")
+        sql = """UPDATE Ordering SET pay = True"""
+        cursor.execute(sql)
+        connection.commit()
 
-                           photo_height=512,  # !=0/None or picture won't be shown
-                           photo_width=512,
-                           photo_size=512,
-                           need_email=True,
-                           need_phone_number=True,
-                           # need_shipping_address=True,
-                           is_flexible=True,  # True If you need to set up Shipping Fee
-                           prices=PRICES,
-                           # start_parameter='time-machine-example',
-                           payload='some-invoice-payload-for-our-internal-use')
-    # factory.cursor.execute("Update ordering set pay = True")
-    sql = """UPDATE Ordering SET pay = True"""
-    cursor.execute(sql)
-    connection.commit()
-
-    sql = "DELETE FROM Basket " \
-           "WHERE idProfile in (SELECT idProfile FROM Ordering WHERE pay = True)"
-    cursor.execute(sql)
-    connection.commit()
-
-
-# SELECT *
-# FROM inhabitant
-# WHERE phone_number in (select phone_number from client WHERE email="markr@gmail.com");
-
-
+    # sql = "DELETE FROM Basket " \
+    #        "WHERE idProfile in (SELECT idProfile FROM Ordering WHERE pay = True) and idProduct "
+    # cursor.execute(sql)
+    # connection.commit()
 
 @dp.shipping_query_handler(lambda query: True)
 async def process_shipping_query(shipping_query: types.ShippingQuery):
@@ -160,7 +155,8 @@ async def process_successful_payment(message: types.Message):
         MESSAGES['successful_payment'].format(
             total_amount=message.successful_payment.total_amount//100,
             currency=message.successful_payment.currency
-        )
+        ),reply_markup=kb
+
     )
 
 
