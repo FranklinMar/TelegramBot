@@ -12,6 +12,7 @@ import phonenumbers
 from dispatcher import dp
 
 
+
 class UserRegister(StatesGroup):
     surname = State()
     name = State()
@@ -28,10 +29,13 @@ class UserEdit(StatesGroup):
 
 change = ReplyKeyboardMarkup(resize_keyboard=True)
 change.row(KeyboardButton("Так"), KeyboardButton("Ні"))
+string = ""
 
 
 @dp.message_handler(commands=['reg'])
-async def register_start(message: types.Message):
+async def register_start(message: types.Message, temp: str):
+    global string
+    string = temp
     await message.answer("Привіт! Введи своє прізвище:",
                          reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙 Повернутись в головне меню")))
     await UserRegister.surname.set()
@@ -94,6 +98,7 @@ async def phone_number_input(message: types.Message, state: FSMContext):
     await profile(message)
 
 
+
 @dp.message_handler(Text(equals="🔙 Повернутись в головне меню"))
 async def cancel(message: types.Message, state: FSMContext):
     await state.finish()
@@ -107,7 +112,7 @@ async def profile(message: types.Message):
         await message.answer(my_profile(message.from_user.id), reply_markup=change)
     else:
         await message.answer("У вас немає профілю зареєструйтесь будь ласка")
-        await register_start(message)
+        await register_start(message, "profile")
 
 
 def my_profile(id):
@@ -121,7 +126,12 @@ def my_profile(id):
 
 @dp.message_handler(text="Ні")
 async def no(message: types.Message):
-    await message.answer("Виберіть операцію", reply_markup=kb)
+    global string
+    if string == "profile":
+        await message.answer("Виберіть операцію", reply_markup=kb)
+    if string == "help":
+        from files.help import helps
+        await helps(message)
 
 
 @dp.message_handler(text="Відмінити")
@@ -209,3 +219,5 @@ async def name(message: types.Message, state: FSMContext):
     factory.connector.commit()
     await state.finish()
     await profile(message)
+
+

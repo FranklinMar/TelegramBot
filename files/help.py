@@ -6,6 +6,7 @@ from aiogram.types import  ReplyKeyboardMarkup, KeyboardButton
 
 from dispatcher import dp, factory
 from files.authorization import cancel, my_profile, register_start
+
 from files.bot import kb
 
 
@@ -15,7 +16,7 @@ class Support(StatesGroup):
 
 
 @dp.message_handler(text='Допомога🆘')
-async def help(message: types.Message):
+async def helps(message: types.Message):
     if my_profile(message.from_user.id):
         await message.answer("Привіт! Введи з чим пов'язана твоя проблема: ",
                              reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(
@@ -23,7 +24,7 @@ async def help(message: types.Message):
         await Support.problem.set()
     else:
         await message.answer("У вас немає профілю зареєструйтесь будь ласка")
-        await register_start(message)
+        await register_start(message, "help")
 
 
 @dp.message_handler(state=Support.problem)
