@@ -98,7 +98,7 @@ async def create_button(call, name):
 
     @dp.message_handler(state=UserFilter.begin)
     async def surname_input(message: types.Message, state: FSMContext):
-        if message.text == "🔙Назад":
+        if message.text == "🔙 Повернутись в головне меню":
             await cancel(message, state)
             return
         try:
@@ -115,7 +115,7 @@ async def create_button(call, name):
 
     @dp.message_handler(state=UserFilter.end)
     async def surname_input(message: types.Message, state: FSMContext):
-        if message.text == "🔙Назад":
+        if message.text == "🔙 Повернутись в головне меню":
             await cancel(message, state)
             return
         try:
