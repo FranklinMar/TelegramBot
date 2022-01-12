@@ -93,7 +93,7 @@ async def create_button(call, name):
     @dp.message_handler(text="Сортувати за ціною")
     async def callback(message: types.Message):
         await message.answer(text="Нижня межа ціни:",
-                             reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙Назад")))
+                             reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙 Повернутись в головне меню")))
         await UserFilter.begin.set()
 
     @dp.message_handler(state=UserFilter.begin)
