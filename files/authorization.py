@@ -5,14 +5,13 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-
-from Factory import Factory
+from dispatcher import factory as factory
 from files.bot import kb
 import phonenumbers
 
 from dispatcher import dp
 
-factory = Factory("database.db")
+
 
 
 class UserRegister(StatesGroup):
@@ -36,13 +35,13 @@ change.row(KeyboardButton("Так"), KeyboardButton("Ні"))
 @dp.message_handler(commands=['reg'])
 async def register_start(message: types.Message):
     await message.answer("Привіт! Введи своє прізвище:",
-                         reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙Назад")))
+                         reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙 Повернутись в головне меню")))
     await UserRegister.surname.set()
 
 
 @dp.message_handler(state=UserRegister.surname)
 async def surname_input(message: types.Message, state: FSMContext):
-    if message.text == "Назад":
+    if message.text == "🔙 Повернутись в головне меню":
         await cancel(message, state)
         return
     await state.update_data(surname=message.text)
@@ -52,7 +51,7 @@ async def surname_input(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=UserRegister.name)
 async def name_input(message: types.Message, state: FSMContext):
-    if message.text == "Cancel":
+    if message.text == "🔙 Повернутись в головне меню":
         await cancel(message, state)
         return
     await state.update_data(name=message.text)
@@ -61,8 +60,8 @@ async def name_input(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(state=UserRegister.patronymic)
-async def birthday_input(message: types.Message, state: FSMContext):
-    if message.text == "Cancel":
+async def patron_input(message: types.Message, state: FSMContext):
+    if message.text == "🔙 Повернутись в головне меню":
         await cancel(message, state)
         return
     await state.update_data(patronymic=message.text)
@@ -71,8 +70,8 @@ async def birthday_input(message: types.Message, state: FSMContext):
 
 
 @dp.message_handler(state=UserRegister.phone_number)
-async def passport_number_input(message: types.Message, state: FSMContext):
-    if message.text == "Cancel":
+async def phone_number_input(message: types.Message, state: FSMContext):
+    if message.text == "🔙 Повернутись в головне меню":
         await cancel(message, state)
         return
     try:
@@ -97,7 +96,7 @@ async def passport_number_input(message: types.Message, state: FSMContext):
     await profile(message)
 
 
-@dp.message_handler(Text(equals="🔙Назад"))
+@dp.message_handler(Text(equals="🔙 Повернутись в головне меню"))
 async def cancel(message: types.Message, state: FSMContext):
     await state.finish()
     await message.answer("Виберіть дію",
@@ -127,11 +126,17 @@ async def no(message: types.Message):
     await message.answer("Виберіть операцію", reply_markup=kb)
 
 
+@dp.message_handler(text="Відмінити")
+async def otmena(message: types.Message, state: FSMContext):
+    await state.finish()
+    await profile(message)
+
+
 @dp.message_handler(text="Так")
 async def yes(message: types.Message):
     edits = InlineKeyboardMarkup()
     edits.add(InlineKeyboardButton(text="Ім'я", callback_data="edit_Name"))
-    edits.add(InlineKeyboardButton(text="Прізвіще", callback_data="edit_Surname"))
+    edits.add(InlineKeyboardButton(text="Прізвище", callback_data="edit_Surname"))
     edits.add(InlineKeyboardButton(text="По батькові", callback_data="edit_Patronymic"))
     edits.add(InlineKeyboardButton(text="Номер телефону", callback_data="edit_Phonenumber"))
     await message.answer("Виберіть, що вихочете змінити:", reply_markup=edits)
@@ -141,21 +146,24 @@ async def yes(message: types.Message):
 async def callback_worker_promo(call: CallbackQuery):
     model_type, object = call.data.split("_")
     if object == "Name":
-        await call.message.answer("Введіть ім'я:", reply_markup=ReplyKeyboardRemove())
+        await call.message.answer("Введіть ім'я:", reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton("Відмінити")))
         await UserEdit.name.set()
     if object == "Surname":
-        await call.message.answer("Введіть прізвище:", reply_markup=ReplyKeyboardRemove())
+        await call.message.answer("Введіть прізвище:", reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton("Відмінити")))
         await UserEdit.surname.set()
     if object == "Patronymic":
-        await call.message.answer("Введіть по батькові:", reply_markup=ReplyKeyboardRemove())
+        await call.message.answer("Введіть по батькові:", reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton("Відмінити")))
         await UserEdit.patronymic.set()
     if object == "Phonenumber":
-        await call.message.answer("Введіть номер телефону:", reply_markup=ReplyKeyboardRemove())
+        await call.message.answer("Введіть номер телефону:", reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton("Відмінити")))
         await UserEdit.phone_number.set()
 
 
 @dp.message_handler(state=UserEdit.name)
 async def name(message: types.Message, state: FSMContext):
+    if message.text == "Відмінити":
+        await otmena(message,state)
+        return
     factory.cursor.execute("UPDATE Profile SET name = ? WHERE id = ?;", (message.text, message.from_user.id))
     factory.connector.commit()
     await state.finish()
@@ -164,6 +172,9 @@ async def name(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=UserEdit.surname)
 async def name(message: types.Message, state: FSMContext):
+    if message.text == "Відмінити":
+        await otmena(message,state)
+        return
     factory.cursor.execute("UPDATE Profile SET surname = ? WHERE id = ?;", (message.text, message.from_user.id))
     factory.connector.commit()
     await state.finish()
@@ -172,6 +183,9 @@ async def name(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=UserEdit.patronymic)
 async def name(message: types.Message, state: FSMContext):
+    if message.text == "Відмінити":
+        await otmena(message,state)
+        return
     factory.cursor.execute("UPDATE Profile SET patronymic = ? WHERE id = ?;", (message.text, message.from_user.id))
     factory.connector.commit()
     await state.finish()
@@ -180,6 +194,9 @@ async def name(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=UserEdit.phone_number)
 async def name(message: types.Message, state: FSMContext):
+    if message.text == "Відмінити":
+        await otmena(message,state)
+        return
     try:
         phone_number = phonenumbers.parse(message.text)
     except phonenumbers.NumberParseException:
