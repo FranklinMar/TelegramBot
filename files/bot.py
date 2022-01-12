@@ -3,7 +3,7 @@ from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButt
 
 
 from Factory import Factory
-from dispatcher import dp, bot
+from dispatcher import dp, bot, factory as factory
 from DatabaseFunctions import insert_db
 
 kb = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -16,7 +16,6 @@ kb.add(KeyboardButton('Допомога🆘'))
 
 @dp.message_handler(commands=['start'])
 async def process_start_command(message: types.Message):
-    factory = Factory("database.db")
     if factory.cursor.execute(f"SELECT * FROM Profile WHERE id = {message.from_user.id};").fetchall():
         pass
     else:
