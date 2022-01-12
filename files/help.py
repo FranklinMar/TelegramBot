@@ -4,8 +4,9 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import  ReplyKeyboardMarkup, KeyboardButton
 
-from dispatcher import dp
-from files.authorization import cancel
+from dispatcher import dp, factory
+from files.authorization import cancel, my_profile, register_start
+from files.bot import kb
 
 
 class Support(StatesGroup):
@@ -14,37 +15,39 @@ class Support(StatesGroup):
 
 
 @dp.message_handler(text='Допомога🆘')
-async def register_start(message: types.Message):
-    await message.answer("Привіт! Введи з чим пов'язана твоя проблема: ",
-                         reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙 Повернутись в головне меню")))
-    await Support.problem.set()
+async def help(message: types.Message):
+    if my_profile(message.from_user.id):
+        await message.answer("Привіт! Введи з чим пов'язана твоя проблема: ",
+                             reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(
+                                 KeyboardButton("🔙 Повернутись в головне меню")))
+        await Support.problem.set()
+    else:
+        await message.answer("У вас немає профілю зареєструйтесь будь ласка")
+        await register_start(message)
 
 
 @dp.message_handler(state=Support.problem)
-async def surname_input(message: types.Message, state: FSMContext):
+async def problem_input(message: types.Message, state: FSMContext):
     if message.text == "🔙 Повернутись в головне меню":
         await cancel(message, state)
         return
-    await state.update_data(surname=message.text)
+    await state.update_data(problem=message.text)
     await message.answer("Опиши проблему повністю:")
     await Support.description.set()
 
 
 @dp.message_handler(state=Support.description)
-async def name_input(message: types.Message, state: FSMContext):
+async def description_input(message: types.Message, state: FSMContext):
     if message.text == "🔙 Повернутись в головне меню":
         await cancel(message, state)
         return
-    await state.update_data(name=message.text)
-    await message.answer("Введіть по батькові:")
-    await UserRegister.patronymic.set()
+    await state.update_data(description=message.text)
+    new_support = await state.get_data()
+    sql = f"INSERT INTO Support (Problem, Description, idProfile) VALUES (?, ?, ?);"
+    data = (new_support["problem"], new_support["description"], message.from_user.id)
+    factory.cursor.execute(sql, data)
+    factory.connector.commit()
+    await message.answer("Дякуємо, після вирішення проблеми ми зателефонуємо вам✅", reply_markup=kb)
+    await state.finish()
 
 
-@dp.message_handler(state=UserRegister.patronymic)
-async def patron_input(message: types.Message, state: FSMContext):
-    if message.text == "🔙 Повернутись в головне меню":
-        await cancel(message, state)
-        return
-    await state.update_data(patronymic=message.text)
-    await message.answer("Введіть номер телефону:")
-    await UserRegister.phone_number.set()

@@ -12,8 +12,6 @@ import phonenumbers
 from dispatcher import dp
 
 
-
-
 class UserRegister(StatesGroup):
     surname = State()
     name = State()
