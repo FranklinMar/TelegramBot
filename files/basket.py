@@ -166,9 +166,9 @@ async def process_size(callback_query: types.CallbackQuery):
             await bot.send_message(callback_query.from_user.id, '---🧥Розміри🧥---\nS - маленький\nM - середній\nL - '
                                                                 'великий')
         elif temporary[4] == "Woman":
-            await bot.send_photo(callback_query.from_user.id, photo="./photos/dimenGridM.jpg")
+            await bot.send_photo(callback_query.from_user.id, photo=open("./photos/ dimenGridW.jpg", "rb"))
         else:
-            await bot.send_photo(callback_query.from_user.id, photo="./photos/dimenGridW.jpg")
+            await bot.send_photo(callback_query.from_user.id, photo=open("./photos/dimenGridM.jpg", "rb"))
         await bot.send_message(callback_query.from_user.id, '👕👖🧥 Оберіть розмір товару 👞👟🧤', reply_markup=keyboard)
     else:
         await bot.send_message(callback_query.from_user.id, '🚫 Вибачте, цей товар вичерпано зі складу. 🚫\n'
