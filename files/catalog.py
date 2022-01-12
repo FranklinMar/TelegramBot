@@ -3,14 +3,14 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-
+from dispatcher import factory
 
 from Factory import Factory
 from dispatcher import dp, bot
 from files.authorization import cancel
 from files.bot import kb
 
-factory = Factory("database.db")
+# factory = Factory("database.db")
 
 
 class UserFilter(StatesGroup):
@@ -216,7 +216,7 @@ async def add_callback_run(callback_query: types.CallbackQuery):
                 text=f"Like for {get_name_product_by_id(callback_query.data.replace('like ', ''))}"
                      f" added.", show_alert=True)
         else:
-            await callback_query.answer(text=f"Ви вже додаали відгук на цей товар!", show_alert=True)
+            await callback_query.answer(text=f"Ви вже додали відгук на цей товар!", show_alert=True)
     else:
         await callback_query.answer(text=f"Ви не можете додати відгук без покупки товару!", show_alert=True)
 
@@ -239,7 +239,7 @@ async def add_callback_run(callback_query: types.CallbackQuery):
                 text=f"👍 для {get_name_product_by_id(callback_query.data.replace('dislike ', ''))}"
                      f" додано.", show_alert=True)
         else:
-            await callback_query.answer(text=f"Ви вже додаали відгук на цей товар!", show_alert=True)
+            await callback_query.answer(text=f"Ви вже додали відгук на цей товар!", show_alert=True)
     else:
         await callback_query.answer(text=f"Ви не можете додати відгук без покупки товару!", show_alert=True)
 

@@ -129,5 +129,14 @@ def ordering():
 
 
 if __name__ == "__main__":
-    insert_db("Woman hoodie", "Beautiful oversize hoodie", 500, "Woman", "1.jpg", "Hoodies_woman")
-    insert_db('Hoodie "dino"', "Hoodie with dino print", 600, "Woman", "2.jpg", "Hoodies_woman")
+    insert_db("Жіноче худі", "Стильне худі оверсайз з милим принтом", 500, "Woman", "photos/1.jpg", "Hoodies_woman")
+    insert_db('Худі "діно"', "Худі з принтом динозавра", 600, "Woman", "photos/2.jpg", "Hoodies_woman")
+    insert_db("Жіноча куртка", "Стильна тепла куртка оверсайз", 1000, "Woman", "photos/3.jpg", "Outerwear_woman")
+    insert_db("Жіноча сумочка", "Маленька жіноча сумочка з прінтом", 900, "Woman", "photos/4.jpg", "Accessories_woman")
+    insert_db("Жіноча джинси", "Джинси, фасон:мом", 700, "Woman", "photos/5.jpg", "Pants_woman")
+    insert_db("Чоловіче худі 'MAN'", "Тепле худі на флісі", 600, "Man", "photos/6.jpg", "Hoodies_man")
+    insert_db("Чоловіча куртка 'Columbia'", "Зимова куртка з поліестра ти синтепона", 1600, "Man", "photos/7.jpg", "Outerwear_man")
+    insert_db("Чоловіча кепка", "Бейсболка з утеплювачем", 200, "Man", "photos/8.jpg",
+              "Accessories_man")
+    insert_db("Чоловічі штани", "Брюки loose", 800, "Man", "photos/9.jpg",
+              "Pants_man")
