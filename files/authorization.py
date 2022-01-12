@@ -36,7 +36,7 @@ string = ""
 async def register_start(message: types.Message, temp: str):
     global string
     string = temp
-    await message.answer("Привіт! Введи своє прізвище:",
+    await message.answer("Введіть своє прізвище:",
                          reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙 Повернутись в головне меню")))
     await UserRegister.surname.set()
 
