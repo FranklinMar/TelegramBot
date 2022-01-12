@@ -144,13 +144,13 @@ async def callback_worker_promo(call: CallbackQuery):
         await call.message.answer("Введіть ім'я:", reply_markup=ReplyKeyboardRemove())
         await UserEdit.name.set()
     if object == "Surname":
-        await call.message.answer("Введіть прізвище:")
+        await call.message.answer("Введіть прізвище:", reply_markup=ReplyKeyboardRemove())
         await UserEdit.surname.set()
     if object == "Patronymic":
-        await call.message.answer("Введіть по батькові:")
+        await call.message.answer("Введіть по батькові:", reply_markup=ReplyKeyboardRemove())
         await UserEdit.patronymic.set()
     if object == "Phonenumber":
-        await call.message.answer("Введіть номер телефону:")
+        await call.message.answer("Введіть номер телефону:", reply_markup=ReplyKeyboardRemove())
         await UserEdit.phone_number.set()
 
 
@@ -184,10 +184,10 @@ async def name(message: types.Message, state: FSMContext):
         phone_number = phonenumbers.parse(message.text)
     except phonenumbers.NumberParseException:
         await message.answer(
-            "Error! The phone number was entered incorrectly😔")
+            "Помилка! Ваш номер телефону неправльно введений😔")
         return
     if not phonenumbers.is_possible_number(phone_number):
-        await message.answer("Error! The phone number was entered incorrectly😔")
+        await message.answer("Помилка! Ваш номер телефону неправльно введений😔")
         return
 
     factory.cursor.execute("UPDATE Profile SET phone_number = ? WHERE id = ?;", (message.text, message.from_user.id))
