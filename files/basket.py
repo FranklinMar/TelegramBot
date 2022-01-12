@@ -155,8 +155,21 @@ async def process_size(callback_query: types.CallbackQuery):
         # reply_markup = InlineKeyboardMarkup().add(InlineKeyboardButton(f'Add to buying ⏩🟢',
         #             callback_data=f'/AddOrder {i[0]}')).add(InlineKeyboardButton(f'Add to buying ⏩🟢',
         #                          callback_data=f'/Delete {i[0]}')))
-        await bot.send_message(callback_query.from_user.id, '👕👖🧥 Оберіть розмір товару 👞👟🧤',
-                               reply_markup=keyboard)
+        factory.cursor.execute(f"SELECT * FROM Product WHERE idProduct = {callback_query.data.split()[1]};")
+        temporary = factory.cursor.fetchone()
+        if not temporary:
+            await bot.send_message(callback_query.from_user.id, '🚫 Вибачте, цей товар не присутній у магазині. 🚫',
+                                   reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(text='⬇️ Назад',
+                                                                                            callback_data='basket')))
+            return
+        if temporary[6] == "Accessories_woman" or temporary[6] == "Accessories_man":
+            await bot.send_message(callback_query.from_user.id, '---🧥Розміри🧥---\nS - маленький\nM - середній\nL - '
+                                                                'великий')
+        elif temporary[4] == "Woman":
+            await bot.send_photo(callback_query.from_user.id, photo="./photos/dimenGridM.jpg")
+        else:
+            await bot.send_photo(callback_query.from_user.id, photo="./photos/dimenGridW.jpg")
+        await bot.send_message(callback_query.from_user.id, '👕👖🧥 Оберіть розмір товару 👞👟🧤', reply_markup=keyboard)
     else:
         await bot.send_message(callback_query.from_user.id, '🚫 Вибачте, цей товар вичерпано зі складу. 🚫\n'
                                                             '⚠️Спробуйте пізніше.',
