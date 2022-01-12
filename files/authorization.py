@@ -108,6 +108,8 @@ async def cancel(message: types.Message, state: FSMContext):
 
 @dp.message_handler(lambda message: message.text == "Профіль🙎‍♂️🙍‍♀️")
 async def profile(message: types.Message):
+    global string
+    string = "profile"
     if my_profile(message.from_user.id):
         await message.answer(my_profile(message.from_user.id), reply_markup=change)
     else:
