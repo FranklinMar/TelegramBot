@@ -7,7 +7,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
 from files.bot import process_start_command
 from dispatcher import dp, bot
 from aiogram.dispatcher import FSMContext
-from Factory import Factory
+from dispatcher import factory as factory
 # from aiogram.contrib.fsm_storage.memory import MemoryStorage
 # from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
@@ -15,7 +15,7 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from DatabaseFunctions import select_by_id_db
 import re
 
-factory = Factory("database.db")
+# factory = Factory("database.db")
 
 
 class AmountRegister(StatesGroup):
@@ -85,6 +85,7 @@ async def show_basket(message):
                                 reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton(f'Add to buying ⏩🟢',
                                 callback_data=f'Add {i[0]}')).add(InlineKeyboardButton(f'Remove from basket ❌',
                                 callback_data=f'Delete {i[0]}')))
+        # await bot.send_message(message.from_user.id, "Choose action", reply_markup=ReplyKeyboardRemove())
         await bot.send_message(message.from_user.id, "Choose action", reply_markup=InlineKeyboardMarkup()
                                .add(InlineKeyboardButton(f'⬇️ Back', callback_data=f'startMenu')))
 
