@@ -1,13 +1,10 @@
-from aiogram import Bot
-from aiogram import Dispatcher
-from aiogram import executor
+
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton, \
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-import sqlite3 as sq
 
 from Factory import Factory
 from files.bot import kb
@@ -33,23 +30,23 @@ class UserEdit(StatesGroup):
 
 
 change = ReplyKeyboardMarkup(resize_keyboard=True)
-change.row(KeyboardButton("Yes"), KeyboardButton("No"))
+change.row(KeyboardButton("Так"), KeyboardButton("Ні"))
 
 
 @dp.message_handler(commands=['reg'])
 async def register_start(message: types.Message):
-    await message.answer("Hello! Enter your surname:",
-                         reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙Cancel")))
+    await message.answer("Привіт! Введи своє прізвище:",
+                         reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙Назад")))
     await UserRegister.surname.set()
 
 
 @dp.message_handler(state=UserRegister.surname)
 async def surname_input(message: types.Message, state: FSMContext):
-    if message.text == "Cancel":
+    if message.text == "Назад":
         await cancel(message, state)
         return
     await state.update_data(surname=message.text)
-    await message.answer("Enter your name:")
+    await message.answer("Введіть ім'я:")
     await UserRegister.name.set()
 
 
@@ -59,7 +56,7 @@ async def name_input(message: types.Message, state: FSMContext):
         await cancel(message, state)
         return
     await state.update_data(name=message.text)
-    await message.answer("Enter your patronymic:")
+    await message.answer("Введіть по батькові:")
     await UserRegister.patronymic.set()
 
 
@@ -69,7 +66,7 @@ async def birthday_input(message: types.Message, state: FSMContext):
         await cancel(message, state)
         return
     await state.update_data(patronymic=message.text)
-    await message.answer("Enter phone number:")
+    await message.answer("Введіть номер телефону:")
     await UserRegister.phone_number.set()
 
 
@@ -82,10 +79,10 @@ async def passport_number_input(message: types.Message, state: FSMContext):
         phone_number = phonenumbers.parse(message.text)
     except phonenumbers.NumberParseException:
         await message.answer(
-            "Error! The phone number was entered incorrectly😔")
+            "Помилка! Ваш номер телефону неправльно введений😔")
         return
     if not phonenumbers.is_possible_number(phone_number):
-        await message.answer("Error! The phone number was entered incorrectly😔")
+        await message.answer("Помилка! Ваш номер телефону неправльно введений😔")
         return
 
     await state.update_data(phone_number=message.text)
@@ -95,15 +92,15 @@ async def passport_number_input(message: types.Message, state: FSMContext):
     data = (new_user["surname"], new_user["name"], new_user["patronymic"], new_user["phone_number"], message.from_user.id)
     factory.cursor.execute(sql, data)
     factory.connector.commit()
-    await message.answer("Registration completed ✅")
+    await message.answer("Реєстрацію завершено✅")
     await state.finish()
     await profile(message)
 
 
-@dp.message_handler(Text(equals="🔙Cancel"))
+@dp.message_handler(Text(equals="🔙Назад"))
 async def cancel(message: types.Message, state: FSMContext):
     await state.finish()
-    await message.answer("Cancel",
+    await message.answer("Виберіть дію",
                          reply_markup=kb)
 
 
@@ -112,7 +109,7 @@ async def profile(message: types.Message):
     if my_profile(message.from_user.id):
         await message.answer(my_profile(message.from_user.id), reply_markup=change)
     else:
-        await message.answer("You do not have a profile, please register!")
+        await message.answer("У вас немає профілю зареєструйтесь будь ласка")
         await register_start(message)
 
 
@@ -120,40 +117,40 @@ def my_profile(id):
     profiles = factory.cursor.execute(f"SELECT * FROM Profile WHERE id = {id};").fetchall()
     for profile in profiles:
         if profile[1]:
-            return f"Your profile:\nName: {profile[1]}\nSurname: {profile[2]}\nPatronymic: {profile[3]}\nPhone_number: {profile[4]}\nWant to change your profile?"
+            return f"Ваш профіль :\nІм'я: {profile[1]}\nПрізвище: {profile[2]}\nПо батькові: {profile[3]}\nНомер телефону: {profile[4]}\nВи хочете змінити профіль?"
         else:
             return None
 
 
-@dp.message_handler(text="No")
+@dp.message_handler(text="Ні")
 async def no(message: types.Message):
-    await message.answer("Choose an operation", reply_markup=kb)
+    await message.answer("Виберіть операцію", reply_markup=kb)
 
 
-@dp.message_handler(text="Yes")
+@dp.message_handler(text="Так")
 async def yes(message: types.Message):
     edits = InlineKeyboardMarkup()
-    edits.add(InlineKeyboardButton(text="Name", callback_data="edit_Name"))
-    edits.add(InlineKeyboardButton(text="Surname", callback_data="edit_Surname"))
-    edits.add(InlineKeyboardButton(text="Patronymic", callback_data="edit_Patronymic"))
-    edits.add(InlineKeyboardButton(text="Phone number", callback_data="edit_Phonenumber"))
-    await message.answer("Choose what you want to change:", reply_markup=edits)
+    edits.add(InlineKeyboardButton(text="Ім'я", callback_data="edit_Name"))
+    edits.add(InlineKeyboardButton(text="Прізвіще", callback_data="edit_Surname"))
+    edits.add(InlineKeyboardButton(text="По батькові", callback_data="edit_Patronymic"))
+    edits.add(InlineKeyboardButton(text="Номер телефону", callback_data="edit_Phonenumber"))
+    await message.answer("Виберіть, що вихочете змінити:", reply_markup=edits)
 
 
 @dp.callback_query_handler(lambda call: call.data.startswith('edit'))
 async def callback_worker_promo(call: CallbackQuery):
     model_type, object = call.data.split("_")
     if object == "Name":
-        await call.message.answer("Enter name:")
+        await call.message.answer("Введіть ім'я:", reply_markup=ReplyKeyboardRemove())
         await UserEdit.name.set()
     if object == "Surname":
-        await call.message.answer("Enter surname:")
+        await call.message.answer("Введіть прізвище:")
         await UserEdit.surname.set()
     if object == "Patronymic":
-        await call.message.answer("Enter patronymic:")
+        await call.message.answer("Введіть по батькові:")
         await UserEdit.patronymic.set()
     if object == "Phonenumber":
-        await call.message.answer("Enter phone_number:")
+        await call.message.answer("Введіть номер телефону:")
         await UserEdit.phone_number.set()
 
 
