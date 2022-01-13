@@ -7,7 +7,7 @@ from dispatcher import factory
 
 from dispatcher import dp, bot
 from files.authorization import cancel
-from files.bot import kb
+type_cloth = ""
 
 
 class UserFilter(StatesGroup):
@@ -59,7 +59,12 @@ async def send_man(message: types.Message):
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('man '))
 async def add_man_category(callback_query: types.CallbackQuery):
     await sql_read(callback_query, callback_query.data.replace('man ', ''))
-    await create_button(callback_query, callback_query.data.replace('man ', ''))
+    global type_cloth
+    type_cloth = callback_query.data.replace('man ', '')
+    ft = ReplyKeyboardMarkup(resize_keyboard=True)
+    ft.add(KeyboardButton("Сортувати за ціною"))
+    ft.add(KeyboardButton("🔙 Повернутись в головне меню"))
+    await bot.send_message(callback_query.from_user.id, "Оберіть:", reply_markup=ft)
 
 
 @dp.message_handler(text="Жіночий одяг")
@@ -81,58 +86,59 @@ async def send_woman(message: types.Message):
 @dp.callback_query_handler(lambda x: x.data and x.data.startswith('woman '))
 async def add_man_category(callback_query: types.CallbackQuery):
     await sql_read(callback_query, callback_query.data.replace('woman ', ''))
-    await create_button(callback_query, callback_query.data.replace('woman ', ''))
-
-
-async def create_button(call, name):
+    global type_cloth
+    type_cloth = callback_query.data.replace('woman ', '')
     ft = ReplyKeyboardMarkup(resize_keyboard=True)
     ft.add(KeyboardButton("Сортувати за ціною"))
     ft.add(KeyboardButton("🔙 Повернутись в головне меню"))
-    await bot.send_message(call.from_user.id, "Оберіть:", reply_markup=ft)
+    await bot.send_message(callback_query.from_user.id, "Оберіть:", reply_markup=ft)
 
-    @dp.message_handler(text="Сортувати за ціною")
-    async def callback(message: types.Message):
-        await message.answer(text="Нижня межа ціни:",
-                             reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙 Повернутись в головне меню")))
-        await UserFilter.begin.set()
 
-    @dp.message_handler(state=UserFilter.begin)
-    async def surname_input(message: types.Message, state: FSMContext):
-        if message.text == "🔙 Повернутись в головне меню":
-            await cancel(message, state)
-            return
-        try:
-            number_begin = int(message.text)
-        except:
-            await message.answer("Нижня межа ціни повинна бути числом😔")
-            return
-        if number_begin < 0:
-            await message.answer("Нижня межа ціни повинна бути більшою нуля😔")
-            return
-        await state.update_data(begin=number_begin)
-        await message.answer("Верхня межа ціни:")
-        await UserFilter.end.set()
+@dp.message_handler(text="Сортувати за ціною")
+async def callback(message: types.Message):
+    await message.answer(text="Нижня межа ціни:",
+                        reply_markup=ReplyKeyboardMarkup(resize_keyboard=True).row(KeyboardButton("🔙 Повернутись в головне меню")))
+    await UserFilter.begin.set()
 
-    @dp.message_handler(state=UserFilter.end)
-    async def surname_input(message: types.Message, state: FSMContext):
-        if message.text == "🔙 Повернутись в головне меню":
-            await cancel(message, state)
-            return
-        try:
-            number_end = int(message.text)
-        except:
-            await message.answer("Верхня межа ціни повинна бути числом😔")
-            return
-        if number_end < 0:
-            await message.answer("Верхня межа ціни повинна бути більшою нуля😔")
-            return
-        number = await state.get_data()
-        if number["begin"] > number_end:
-            await message.answer("Верхня межа ціни повинна бути більша нижньої😔")
-            return
-        await state.update_data(end=number_end)
-        await sql_read(message, name, await state.get_data())
-        await state.finish()
+
+@dp.message_handler(state=UserFilter.begin)
+async def surname_input(message: types.Message, state: FSMContext):
+    if message.text == "🔙 Повернутись в головне меню":
+        await cancel(message, state)
+        return
+    try:
+        number_begin = int(message.text)
+    except:
+        await message.answer("Нижня межа ціни повинна бути числом😔")
+        return
+    if number_begin < 0:
+        await message.answer("Нижня межа ціни повинна бути більшою нуля😔")
+        return
+    await state.update_data(begin=number_begin)
+    await message.answer("Верхня межа ціни:")
+    await UserFilter.end.set()
+
+
+@dp.message_handler(state=UserFilter.end)
+async def surname_input(message: types.Message, state: FSMContext):
+    if message.text == "🔙 Повернутись в головне меню":
+        await cancel(message, state)
+        return
+    try:
+        number_end = int(message.text)
+    except:
+        await message.answer("Верхня межа ціни повинна бути числом😔")
+        return
+    if number_end < 0:
+        await message.answer("Верхня межа ціни повинна бути більшою нуля😔")
+        return
+    number = await state.get_data()
+    if number["begin"] > number_end:
+        await message.answer("Верхня межа ціни повинна бути більша нижньої😔")
+        return
+    await state.update_data(end=number_end)
+    await sql_read(message, type_cloth, await state.get_data())
+    await state.finish()
 
 
 def get_name_product_by_id(id_product):
@@ -177,8 +183,8 @@ async def add_callback_run(callback_query: types.CallbackQuery):
                                     callback_query.from_user.id, 1, 0))
             factory.connector.commit()
             await callback_query.answer(
-                text=f"Like for {get_name_product_by_id(callback_query.data.replace('like ', ''))}"
-                     f" added.", show_alert=True)
+                text=f"👍 для {get_name_product_by_id(callback_query.data.replace('like ', ''))}"
+                     f" додано.", show_alert=True)
         else:
             await callback_query.answer(text=f"Ви вже додали відгук на цей товар!", show_alert=True)
     else:
@@ -200,7 +206,7 @@ async def add_callback_run(callback_query: types.CallbackQuery):
                                                                              callback_query.from_user.id, 0, 1))
             factory.connector.commit()
             await callback_query.answer(
-                text=f"👍 для {get_name_product_by_id(callback_query.data.replace('dislike ', ''))}"
+                text=f"👎 для {get_name_product_by_id(callback_query.data.replace('dislike ', ''))}"
                      f" додано.", show_alert=True)
         else:
             await callback_query.answer(text=f"Ви вже додали відгук на цей товар!", show_alert=True)
@@ -209,6 +215,8 @@ async def add_callback_run(callback_query: types.CallbackQuery):
 
 
 async def sql_read(message, type_clothes, filter_price=None):
+    print(filter_price)
+    print(type_clothes)
     if filter_price is None:
         products = [factory.select_by_id_db(i[0]) for i in
                     factory.cursor.execute("SELECT * FROM Product WHERE type = :typeCl",
